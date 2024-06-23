@@ -73,7 +73,60 @@ pip install pyexifinfo
 
 `ワークスペース` の `スクリプト` から実行可能
 
+## エラーが出る場合
 
+```python
+Traceback (most recent call last):
+  File "<nofile>", line 5, in <module>
+ModuleNotFoundError: No module named 'pyexifinfo'
+```
+
+DaVinci Resolveから参照出来ない場所にpyexifinfoモジュールがインストールされています。
+
+インストール先の確認は以下コマンド
+
+```
+pip show pyexifinfo
+```
+
+```
+Name: pyexifinfo
+Version: 0.4.0
+Summary: Simple Metadata extraction using Exiftool
+Home-page: https://github.com/guinslym/pyexifinfo
+Author: Guinslym
+Author-email: guinslym@gmail.com
+License: GNU GPLv2
+Location: C:\Python311\Lib\site-packages
+Requires:
+Required-by:
+```
+
+`Location`がインストール先です。
+
+DaVinci Resolveが参照する場所は以下をDaVinci Resolveの`ワークスペース` > `コンソール` を開き、上の `Py3` ボタンを押した後に下記を入力して確認出来ます。
+
+```python
+import sys
+print(sys.path)
+```
+
+```
+['C:\\Program Files\\Blackmagic Design\\DaVinci Resolve', 'C:\\Program Files\\Blackmagic Design\\DaVinci Resolve\\%PYTHONPATH%', 'C:\\ProgramData\\Blackmagic Design\\DaVinci Resolve\\Support\\Developer\\Scripting\\Modules', 'C:\\tools\\Anaconda3\\python311.zip', 'C:\\tools\\Anaconda3\\DLLs', 'C:\\tools\\Anaconda3\\Lib', 'C:\\Program Files\\Blackmagic Design\\DaVinci Resolve', 'C:\\tools\\Anaconda3', 'C:\\tools\\Anaconda3\\Lib\\site-packages', 'C:\\tools\\Anaconda3\\Lib\\site-packages\\win32', 'C:\\tools\\Anaconda3\\Lib\\site-packages\\win32\\lib', 'C:\\tools\\Anaconda3\\Lib\\site-packages\\Pythonwin']
+```
+
+`Location`のパスが含まれていない場合は環境変数に追加が必要です。こんな感じです。
+
+```
+PYTHONPATH="%PYTHONPATH%;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting\Modules;C:\Python311\Lib\site-packages"
+```
+PowerShellの場合以下のようにコマンドを変更すればよいです。
+
+```powershell
+[Environment]::SetEnvironmentVariable('PYTHONPATH','%PYTHONPATH%;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\Scripting\Modules;C:\Python311\Lib\site-packages' , 'User')
+```
+
+DaVinci Resolveは再起動してください。
 
 ## 注意事項
 
