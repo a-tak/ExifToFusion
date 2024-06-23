@@ -2,6 +2,7 @@
 import DaVinciResolveScript as dvr_script
 from pyexifinfo import information
 from pprint import pprint
+import pathlib
 
 class ExifToFusion():
     def __init__(self):
@@ -19,23 +20,38 @@ class ExifToFusion():
         # 対象のクリップを取得
         trackType = "video"
         trackIndex = 2  # 取得するトラックのインデックス
+        addTrackIndex = 3
+        # Fusionタイトル削除
+        self.DeleteFusionTitle(addTrackIndex, fusionClipName)
+
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
         for clip in clips:
             mediaPoolItem = clip.GetMediaPoolItem()
             # Exif取得
             exif = self.GetExif(mediaPoolItem)
-#            print(exif)
+            pprint(exif)
                         
             # Fusionタイトル タイムライン追加
-            addTrackIndex = 3
             fusionComp = self.AddToTimeline(clip, srcFusionComp, addTrackIndex)
             
             # Fusionタイトルパラメーター設定
             values = {
-                "Input1": "F99"
+                "Input1": exif.get("Aperture", "Unknown"),
+                "Input13": f"SS:{exif.get("Shutter Speed", "Unknown")} ISO:{exif.get("ISO", "Unknown")}"
             }
             self.SetFusionParameter(fusionComp, values)
-            
+    
+    def DeleteFusionTitle(self, trackIndex, targetClipName):
+        """指定したトラックのFusionタイトルをすべて削除する
+        対象外のクリップがある場合は削除しない
+        """
+        clips = self.timeline.GetItemListInTrack("video", trackIndex)
+        for clip in clips:
+            # 本当ならメディアプールのClip Nameと比較したがったがFusionタイトルとメディアプールが紐付いてないので出来なかった
+            if clip.GetName() != targetClipName:
+                raise Exception("Processing was interrupted due to the presence of another clip on the track")
+        self.timeline.DeleteClips(clips)
+
     def SetFusionParameter(self, fusionComp, parameters):
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
@@ -75,20 +91,50 @@ class ExifToFusion():
     def GetExif(self, mediaPoolItem):
         """指定されたメディアプールアイテムのExifを取得
         """
+        meta = {}
         filePath = mediaPoolItem.GetClipProperty("File Path")
-
-        meta = []
-        data = information(filePath)
-#        print(f"{data}\n-----------------------------------")
-        meta.append(["Camera", data.get("EXIF:Model")])
-        meta.append(["Lens", data.get("Composite:LensID")])
-        meta.append(["Aperture", data.get("Composite:Aperture")])
-        meta.append(["ISO", data.get("EXIF:ISO")])
-        meta.append(["Shutter Speed", data.get("Composite:ShutterSpeed")])
-        meta.append(["Focal Point", data.get("Composite:FocalLength35efl")])
-        meta.append(["Distance", data.get("Composite:HyperfocalDistance")])
-        meta.append(["FPS", mediaPoolItem.GetClipProperty("FPS")])
-
+        if pathlib.Path(filePath).suffix.lower() == ".braw" :
+            meta = self.GetBrawMeta(mediaPoolItem)
+        else:
+            data = information(filePath)
+            meta = self.GetMovMeta(data, mediaPoolItem)
+        return meta
+    
+    def GetMovMeta(self, exifObj, mediaPoolItem):
+        """BRAW以外のメタデータ取得
+        """
+        meta = {
+            "Camera": exifObj.get("EXIF:Model"),
+            "Lens": exifObj.get("Composite:LensID"),
+            "Aperture": exifObj.get("Composite:Aperture"),
+            "ISO": exifObj.get("EXIF:ISO"),
+            "Shutter Speed": exifObj.get("Composite:ShutterSpeed"),
+            "Focal Point": exifObj.get("Composite:FocalLength35efl"),
+            "Distance": exifObj.get("Composite:HyperfocalDistance"),
+            "FPS": mediaPoolItem.GetClipProperty("FPS")
+        }
+        return meta
+        
+    def GetBrawMeta(self, mediaPoolItem):
+        """BRAWのメタデータを取得する
+        """
+        print(mediaPoolItem.GetMetadata())
+        angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
+        print(angle)
+        fps =  mediaPoolItem.GetClipProperty("FPS")
+        ss = f"1/{int(int(fps) * 360 / int(angle))}"
+        meta = {
+            "Camera": mediaPoolItem.GetMetadata("Camera Type"),
+            "Lens": mediaPoolItem.GetMetadata("Lens Type"),
+            "Aperture": mediaPoolItem.GetMetadata("Camera Aperture"),
+            "ISO": mediaPoolItem.GetMetadata("ISO"),
+            "Shutter Speed": ss,
+            "Focal Point": mediaPoolItem.GetMetadata("Focal Point (mm)"),
+            "Distance": mediaPoolItem.GetMetadata("Distance"),
+            "FPS": mediaPoolItem.GetClipProperty("FPS"),
+            "WB": mediaPoolItem.GetMetadata("White Point (Kelvin)"),
+            "Tint": mediaPoolItem.GetMetadata("White Balance Tint")
+        }
         return meta
 
 if __name__ == "__main__":
