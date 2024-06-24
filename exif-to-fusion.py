@@ -4,6 +4,8 @@ from pyexifinfo import information
 from pprint import pprint
 import pathlib
 import sys
+import json
+import os
 
 class ExifToFusion():
     def __init__(self):
@@ -13,14 +15,17 @@ class ExifToFusion():
         self.mediaPool = self.project.GetMediaPool()
         self.timeline = self.project.GetCurrentTimeline()
         self.fusion = self.resolve.Fusion()
-        
+        script_path = os.path.abspath(sys.argv[0])
+        script_dir = os.path.dirname(script_path)
+        self.settings_file = os.path.join(script_dir, "settings.json")
+                
     def main(self):
         ret = self.ShowDialog()
         if ret is None:
             sys.exit()
             
         fusionClipName = ret.get("FusionTitle", None)
-        if fusionClipName is None or fusionClipName =="":
+        if fusionClipName is None or fusionClipName == "":
             raise Exception("Fusion clip Name blank error.")
         
         trackIndex = ret.get("SrcTrack", None)
@@ -56,10 +61,20 @@ class ExifToFusion():
             # Fusionタイトルパラメーター設定
             values = {
                 "Input1": exif.get("Aperture", "Unknown"),
-                "Input13": f"SS:{exif.get("Shutter Speed", "Unknown")} ISO:{exif.get("ISO", "Unknown")}"
+                "Input13": f"SS:{exif.get('Shutter Speed', 'Unknown')} ISO:{exif.get('ISO', 'Unknown')}"
             }
             self.SetFusionParameter(fusionComp, values)
-            
+    
+    def SaveSettings(self, settings):
+        with open(self.settings_file, 'w') as f:
+            json.dump(settings, f)
+    
+    def LoadSettings(self):
+        if os.path.exists(self.settings_file):
+            with open(self.settings_file, 'r') as f:
+                return json.load(f)
+        return {}
+
     def GetFusionTitleNames(self):
         """メディアプールのFusionタイトルのリストを取得する
         """
@@ -88,19 +103,24 @@ class ExifToFusion():
         titleOptions = {}
         for index, title in enumerate(titles):
             titleOptions[index] = title
+
+        settings = self.LoadSettings()
         dialog = {
-            1: {1: "fusionTitle", "Name": "対象のFusionタイトル", 2: "Dropdown", "Options": titleOptions},
-            2: {1: "srcTrack", "Name": "対象のトラックを入力", 2: "Text", "Lines":1, "Default": "2"},
-            3: {1: "dstTrack", "Name": "タイトルの追加先トラックを入力", 2: "Text", "Lines":1, "Default": "3"},
+            1: {1: "fusionTitle", "Name": "対象のFusionタイトル", 2: "Dropdown", "Options": titleOptions, "Default": settings.get("FusionTitleIndex", 0)},
+            2: {1: "srcTrack", "Name": "対象のトラックを入力", 2: "Text", "Lines": 1, "Default": settings.get("SrcTrack", "2")},
+            3: {1: "dstTrack", "Name": "タイトルの追加先トラックを入力", 2: "Text", "Lines": 1, "Default": settings.get("DstTrack", "3")},
         }
         result = comp.AskUser("トラック選択", dialog)
 
         if result:
-            return {
-                "FusionTitle": titleOptions[result["fusionTitle"]+1],
+            settings_to_save = {
+                "FusionTitle": titleOptions[result["fusionTitle"] + 1],
+                "FusionTitleIndex": result["fusionTitle"],
                 "SrcTrack": result["srcTrack"],
-                "DstTrack": result["dstTrack"],
+                "DstTrack": result["dstTrack"]
             }
+            self.SaveSettings(settings_to_save)
+            return settings_to_save
         else:
             return None
     
@@ -141,7 +161,6 @@ class ExifToFusion():
         if results[0].GetFusionCompByIndex(1) is None:
             raise Exception("Failed Add Fusion Comp")
         return results[0]
-
 
     def GetFusionComposite(self, clipName):
         """指定されたクリップ名のFusionコンポジットをメディアプールから取得する
@@ -184,7 +203,7 @@ class ExifToFusion():
         """
         print(mediaPoolItem.GetMetadata())
         angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
-        fps =  mediaPoolItem.GetClipProperty("FPS")
+        fps = mediaPoolItem.GetClipProperty("FPS")
         ss = f"1/{int(int(fps) * 360 / int(angle))}"
         meta = {
             "Camera": mediaPoolItem.GetMetadata("Camera Type"),
