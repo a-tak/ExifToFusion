@@ -15,9 +15,9 @@ class ExifToFusion():
         self.mediaPool = self.project.GetMediaPool()
         self.timeline = self.project.GetCurrentTimeline()
         self.fusion = self.resolve.Fusion()
-        script_path = os.path.abspath(sys.argv[0])
-        script_dir = os.path.dirname(script_path)
-        self.settings_file = os.path.join(script_dir, "settings.json")
+        scriptPath = os.path.abspath(sys.argv[0])
+        scriptDir = os.path.dirname(scriptPath)
+        self.settingsFile = os.path.join(scriptDir, "settings.json")
                 
     def main(self):
         ret = self.ShowDialog()
@@ -66,12 +66,12 @@ class ExifToFusion():
             self.SetFusionParameter(fusionComp, values)
     
     def SaveSettings(self, settings):
-        with open(self.settings_file, 'w') as f:
+        with open(self.settingsFile, 'w') as f:
             json.dump(settings, f)
     
     def LoadSettings(self):
-        if os.path.exists(self.settings_file):
-            with open(self.settings_file, 'r') as f:
+        if os.path.exists(self.settingsFile):
+            with open(self.settingsFile, 'r') as f:
                 return json.load(f)
         return {}
 
