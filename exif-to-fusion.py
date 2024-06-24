@@ -106,11 +106,11 @@ class ExifToFusion():
 
         settings = self.LoadSettings()
         dialog = {
-            1: {1: "fusionTitle", "Name": "対象のFusionタイトル", 2: "Dropdown", "Options": titleOptions, "Default": settings.get("FusionTitleIndex", 0)},
-            2: {1: "srcTrack", "Name": "対象のトラックを入力", 2: "Text", "Lines": 1, "Default": settings.get("SrcTrack", "2")},
-            3: {1: "dstTrack", "Name": "タイトルの追加先トラックを入力", 2: "Text", "Lines": 1, "Default": settings.get("DstTrack", "3")},
+            1: {1: "fusionTitle", "Name": "追加するFusionタイトル", 2: "Dropdown", "Options": titleOptions, "Default": settings.get("FusionTitleIndex", 0)},
+            2: {1: "srcTrack", "Name": "Exif取得するトラック番号", 2: "Text", "Lines": 1, "Default": settings.get("SrcTrack", "2")},
+            3: {1: "dstTrack", "Name": "タイトル追加先トラック番号", 2: "Text", "Lines": 1, "Default": settings.get("DstTrack", "3")},
         }
-        result = comp.AskUser("トラック選択", dialog)
+        result = comp.AskUser("ExifToFusion", dialog)
 
         if result:
             settings_to_save = {
