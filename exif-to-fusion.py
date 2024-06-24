@@ -3,6 +3,7 @@ import DaVinciResolveScript as dvr_script
 from pyexifinfo import information
 from pprint import pprint
 import pathlib
+import sys
 
 class ExifToFusion():
     def __init__(self):
@@ -11,19 +12,37 @@ class ExifToFusion():
         self.project = self.projectManager.GetCurrentProject()
         self.mediaPool = self.project.GetMediaPool()
         self.timeline = self.project.GetCurrentTimeline()
+        self.fusion = self.resolve.Fusion()
         
     def main(self):
-        # メディアプールのFusionコンポジット取得
-        fusionClipName = "G_ApertureText-12-ex"
-        srcFusionComp = self.GetFusionComposite(fusionClipName)
+        ret = self.ShowDialog()
+        if ret is None:
+            sys.exit()
+            
+        fusionClipName = ret.get("FusionTitle", None)
+        if fusionClipName is None or fusionClipName =="":
+            raise Exception("Fusion clip Name blank error.")
+        
+        trackIndex = ret.get("SrcTrack", None)
+        if trackIndex is None or self.IsInt(trackIndex) == False:
+            raise Exception(f"SrcTrack invalid.")
+        trackIndex = int(trackIndex)
+        
+        if trackIndex <= 0 or self.timeline.GetTrackCount("video") < trackIndex:
+            raise Exception(f"SrcTrack Invalid. value={trackIndex}")
 
-        # 対象のクリップを取得
-        trackType = "video"
-        trackIndex = 2  # 取得するトラックのインデックス
-        addTrackIndex = 3
+        addTrackIndex = ret.get("DstTrack", None)
+        if addTrackIndex is None or self.IsInt(addTrackIndex) == False:
+            raise Exception(f"DstTrack invalid.")
+        addTrackIndex = int(addTrackIndex)
+        
+        # メディアプールのFusionコンポジット取得
+        srcFusionComp = self.GetFusionComposite(fusionClipName)
         # Fusionタイトル削除
         self.DeleteFusionTitle(addTrackIndex, fusionClipName)
 
+        # 対象のクリップを取得
+        trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
         for clip in clips:
             mediaPoolItem = clip.GetMediaPoolItem()
@@ -40,12 +59,58 @@ class ExifToFusion():
                 "Input13": f"SS:{exif.get("Shutter Speed", "Unknown")} ISO:{exif.get("ISO", "Unknown")}"
             }
             self.SetFusionParameter(fusionComp, values)
+            
+    def GetFusionTitleNames(self):
+        """メディアプールのFusionタイトルのリストを取得する
+        """
+        folder = self.mediaPool.GetCurrentFolder()
+        titles = []
+        for clip in folder.GetClipList():
+            if clip.GetClipProperty("Type") == "Fusionタイトル":
+                titles.append(clip.GetClipProperty("Clip Name"))
+        return titles
+            
+    def IsInt(self, value):
+        try:
+            int(value)
+            return True
+        except ValueError:
+            return False
+    
+    def ShowDialog(self):
+        """ダイアログを表示して対象のトラックをユーザーに選択させる
+        """
+        titles = self.GetFusionTitleNames()
+        comp = self.fusion.GetCurrentComp()
+        if len(titles) == 0:
+            result = comp.AskUser("Fusionタイトルが一つもありません", {})
+            return None
+        titleOptions = {}
+        for index, title in enumerate(titles):
+            titleOptions[index] = title
+        dialog = {
+            1: {1: "fusionTitle", "Name": "対象のFusionタイトル", 2: "Dropdown", "Options": titleOptions},
+            2: {1: "srcTrack", "Name": "対象のトラックを入力", 2: "Text", "Lines":1, "Default": "2"},
+            3: {1: "dstTrack", "Name": "タイトルの追加先トラックを入力", 2: "Text", "Lines":1, "Default": "3"},
+        }
+        result = comp.AskUser("トラック選択", dialog)
+
+        if result:
+            return {
+                "FusionTitle": titleOptions[result["fusionTitle"]+1],
+                "SrcTrack": result["srcTrack"],
+                "DstTrack": result["dstTrack"],
+            }
+        else:
+            return None
     
     def DeleteFusionTitle(self, trackIndex, targetClipName):
         """指定したトラックのFusionタイトルをすべて削除する
         対象外のクリップがある場合は削除しない
         """
         clips = self.timeline.GetItemListInTrack("video", trackIndex)
+        if clips is None:
+            return
         for clip in clips:
             # 本当ならメディアプールのClip Nameと比較したがったがFusionタイトルとメディアプールが紐付いてないので出来なかった
             if clip.GetName() != targetClipName:
@@ -59,7 +124,6 @@ class ExifToFusion():
         tool = list(toolList.values())[0]
         
         if tool is not None:
-            print("find!")
             for key, value in parameters.items():
                 tool[key] = value
 
@@ -120,7 +184,6 @@ class ExifToFusion():
         """
         print(mediaPoolItem.GetMetadata())
         angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
-        print(angle)
         fps =  mediaPoolItem.GetClipProperty("FPS")
         ss = f"1/{int(int(fps) * 360 / int(angle))}"
         meta = {
