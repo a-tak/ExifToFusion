@@ -6,6 +6,10 @@ import pathlib
 import sys
 import json
 import os
+from lib.base import ExifInfo
+from lib.base import TitleSetterAbs
+import importlib
+import pkgutil
 
 class ExifToFusion():
     def __init__(self):
@@ -18,13 +22,15 @@ class ExifToFusion():
         scriptPath = os.path.abspath(sys.argv[0])
         scriptDir = os.path.dirname(scriptPath)
         self.settingsFile = os.path.join(scriptDir, "settings.json")
+        self.titlePkg = "title"
+        self.titleDir = os.path.join(scriptDir, self.titlePkg)
                 
     def main(self):
-        ret = self.ShowMainDialog()
+        ret: dict = self.ShowMainDialog()
         if ret is None:
             sys.exit()
             
-        fusionClipName = ret.get("FusionTitle", None)
+        fusionClipName: str = ret.get("FusionTitle", None)
         if fusionClipName is None or fusionClipName == "":
             raise Exception("Fusion clip Name blank error.")
         
@@ -34,7 +40,6 @@ class ExifToFusion():
         trackIndex = int(trackIndex)
         
         if trackIndex <= 0 or self.timeline.GetTrackCount("video") < trackIndex:
-            # raise Exception(f"SrcTrack Invalid. value={trackIndex}")
             self.ShowMessage(f"指定されたトラック`{trackIndex}`はありません\nExifの取得対象となるクリップが配置されているトラック番号を入れてください")
             sys.exit()
 
@@ -45,9 +50,22 @@ class ExifToFusion():
         
         # メディアプールのFusionコンポジット取得
         srcFusionComp = self.GetFusionComposite(fusionClipName)
+        
         # Fusionタイトル削除
-        self.DeleteFusionTitle(addTrackIndex, fusionClipName)
-
+        delRet = self.DeleteFusionTitle(addTrackIndex, fusionClipName)
+        if delRet == False:
+            self.ShowMessage("出力先のトラックに他のクリップが既に存在します。\n削除してやり直すか別のトラックを指定してください。")
+            sys.exit()
+        
+        # 対象のタイトルパラメーター生成クラスを取得
+        titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
+        if len(titleMods) == 0:
+            raise Exception("Title parameter generator module not found")
+        titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
+        if titleIns is None:
+            self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
+            sys.exit()
+        
         # 対象のクリップを取得
         trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
@@ -56,45 +74,70 @@ class ExifToFusion():
             # Exif取得
             exif = self.GetExif(mediaPoolItem)
             pprint(exif)
-                        
+                                    
             # Fusionタイトル タイムライン追加
             fusionComp = self.AddToTimeline(clip, srcFusionComp, addTrackIndex)
+
+            # 一旦きめうちでカメラ毎の差異気にせず入れ直す
+            e = ExifInfo()
+            e.Aperture = exif.get("Aperture","Unknown")
+            e.SS = exif.get('Shutter Speed', 'Unknown')
+            e.ISO = exif.get('ISO', 'Unknown')
             
             # Fusionタイトルパラメーター設定
-            values = {
-                "Input1": exif.get("Aperture", "Unknown"),
-                "Input13": f"SS:{exif.get('Shutter Speed', 'Unknown')} ISO:{exif.get('ISO', 'Unknown')}"
-            }
-            self.SetFusionParameter(fusionComp, values)
-    
-    def SaveSettings(self, settings):
+            values = titleIns.GenerateFusionParameter(e)
+            self.SetFusionParameter(fusionComp, values)            
+            
+    def LoadModulesFromFolder(self, folder, pkgName):
+        modules = {}
+        for _, module_name, is_pkg in pkgutil.iter_modules([folder]):
+            if not is_pkg:
+                module = importlib.import_module(f"{pkgName}.{module_name}")
+                modules[module_name] = module
+        return modules
+
+    def FindSubclassInstanceWithName(self, modules, base_class, target_name):
+        for module in modules.values():
+            for attribute_name in dir(module):
+                attribute = getattr(module, attribute_name)
+                if isinstance(attribute, type) and issubclass(attribute, base_class) and attribute is not base_class:
+                    # クラスが指定したベースクラスのサブクラスであることを確認
+                    if hasattr(attribute, 'GetName') and callable(getattr(attribute, 'GetName')):
+                        class_instance = attribute()
+                        if class_instance.GetName() == target_name:
+                            print(f"Found instance of {attribute_name} in module {module.__name__}")
+                            return class_instance
+        print(f"No subclass of {base_class.__name__} found with name {target_name}")
+        return None
+        
+    def SaveSettings(self, settings) -> None: 
         with open(self.settingsFile, 'w') as f:
             json.dump(settings, f)
     
-    def LoadSettings(self):
+    def LoadSettings(self) -> None:
         if os.path.exists(self.settingsFile):
             with open(self.settingsFile, 'r') as f:
                 return json.load(f)
         return {}
 
-    def GetFusionTitleNames(self):
+    def GetFusionTitleNames(self) -> list[str]:
         """メディアプールのFusionタイトルのリストを取得する
         """
         folder = self.mediaPool.GetCurrentFolder()
-        titles = []
+        titles: list[str] = []
         for clip in folder.GetClipList():
             if clip.GetClipProperty("Type") == "Fusionタイトル":
                 titles.append(clip.GetClipProperty("Clip Name"))
         return titles
             
-    def IsInt(self, value):
+    def IsInt(self, value) -> bool:
         try:
             int(value)
             return True
         except ValueError:
             return False
         
-    def ShowMessage(self, message):
+    def ShowMessage(self, message) -> None:
         """無理やり標準UIでメッセージ画面を出す
         """
         comp = self.fusion.GetCurrentComp()
@@ -103,7 +146,7 @@ class ExifToFusion():
         }
         comp.AskUser("メッセージ", dialog)
         
-    def ShowMainDialog(self):
+    def ShowMainDialog(self) -> dict:
         """ダイアログを表示して対象のトラックをユーザーに選択させる
         """
         titles = self.GetFusionTitleNames()
@@ -135,7 +178,7 @@ class ExifToFusion():
         else:
             return None
     
-    def DeleteFusionTitle(self, trackIndex, targetClipName):
+    def DeleteFusionTitle(self, trackIndex, targetClipName) -> bool:
         """指定したトラックのFusionタイトルをすべて削除する
         対象外のクリップがある場合は削除しない
         """
@@ -145,10 +188,11 @@ class ExifToFusion():
         for clip in clips:
             # 本当ならメディアプールのClip Nameと比較したがったがFusionタイトルとメディアプールが紐付いてないので出来なかった
             if clip.GetName() != targetClipName:
-                raise Exception("Processing was interrupted due to the presence of another clip on the track")
+                return False
         self.timeline.DeleteClips(clips)
+        return True
 
-    def SetFusionParameter(self, fusionComp, parameters):
+    def SetFusionParameter(self, fusionComp, parameters) -> None:
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
         toolList = comp.GetToolList()
@@ -182,7 +226,7 @@ class ExifToFusion():
                 return clip
         raise Exception(f"Not Found Fusion Clip: {clipName}")
         
-    def GetExif(self, mediaPoolItem):
+    def GetExif(self, mediaPoolItem) -> dict:
         """指定されたメディアプールアイテムのExifを取得
         """
         meta = {}
@@ -194,7 +238,7 @@ class ExifToFusion():
             meta = self.GetMovMeta(data, mediaPoolItem)
         return meta
     
-    def GetMovMeta(self, exifObj, mediaPoolItem):
+    def GetMovMeta(self, exifObj, mediaPoolItem) -> dict:
         """BRAW以外のメタデータ取得
         """
         meta = {
@@ -209,7 +253,7 @@ class ExifToFusion():
         }
         return meta
         
-    def GetBrawMeta(self, mediaPoolItem):
+    def GetBrawMeta(self, mediaPoolItem) -> dict:
         """BRAWのメタデータを取得する
         """
         print(mediaPoolItem.GetMetadata())
@@ -228,7 +272,7 @@ class ExifToFusion():
             "WB": mediaPoolItem.GetMetadata("White Point (Kelvin)"),
             "Tint": mediaPoolItem.GetMetadata("White Balance Tint")
         }
-        return meta
+        return meta    
 
 if __name__ == "__main__":
     obj = ExifToFusion().main()
