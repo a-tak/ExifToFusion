@@ -25,3 +25,13 @@ class TitleSetterAbs(ABC):
     @abstractmethod
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         pass
+
+class CameraExifSetterAbs(ABC):
+    @abstractmethod
+    def GetName(self) -> str:
+        pass
+
+    @abstractmethod
+    def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
+        pass
+    

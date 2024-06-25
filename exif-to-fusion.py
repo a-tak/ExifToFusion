@@ -8,6 +8,7 @@ import json
 import os
 from lib.base import ExifInfo
 from lib.base import TitleSetterAbs
+from lib.base import CameraExifSetterAbs
 import importlib
 import pkgutil
 
@@ -24,6 +25,11 @@ class ExifToFusion():
         self.settingsFile = os.path.join(scriptDir, "settings.json")
         self.titlePkg = "title"
         self.titleDir = os.path.join(scriptDir, self.titlePkg)
+        
+        # カメラモジュールの取得
+        self.cameraPkg = "camera"
+        self.cameraDir = os.path.join(scriptDir, self.cameraPkg)
+        self.cameraMods = self.LoadModulesFromFolder(self.cameraDir, self.cameraPkg)
                 
     def main(self):
         ret: dict = self.ShowMainDialog()
@@ -70,25 +76,28 @@ class ExifToFusion():
         trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
         for clip in clips:
-            mediaPoolItem = clip.GetMediaPoolItem()
-            # Exif取得
-            exif = self.GetExif(mediaPoolItem)
-            pprint(exif)
                                     
             # Fusionタイトル タイムライン追加
             fusionComp = self.AddToTimeline(clip, srcFusionComp, addTrackIndex)
 
-            # 一旦きめうちでカメラ毎の差異気にせず入れ直す
-            e = ExifInfo()
-            e.Aperture = exif.get("Aperture","Unknown")
-            e.SS = exif.get('Shutter Speed', 'Unknown')
-            e.ISO = exif.get('ISO', 'Unknown')
+            mediaPoolItem = clip.GetMediaPoolItem()
+            # Exif取得
+            e = self.GetExif(mediaPoolItem)
             
             # Fusionタイトルパラメーター設定
             values = titleIns.GenerateFusionParameter(e)
             self.SetFusionParameter(fusionComp, values)            
             
-    def LoadModulesFromFolder(self, folder, pkgName):
+    def LoadModulesFromFolder(self, folder, pkgName) -> dict:
+        """指定したフォルダのモジュールを取得する
+
+        Args:
+            folder (string): 検索先のフォルダ。ルートからのパス。
+            pkgName (string): パッケージ名。スクリプトのルートからのフォルダ構成をドットで繋いだものになるはず…
+
+        Returns:
+            dict: モジュールの一覧
+        """
         modules = {}
         for _, module_name, is_pkg in pkgutil.iter_modules([folder]):
             if not is_pkg:
@@ -97,6 +106,16 @@ class ExifToFusion():
         return modules
 
     def FindSubclassInstanceWithName(self, modules, base_class, target_name):
+        """モジュール群で特定のクラスを継承したクラスの中から指定した名前のクラスのインスタンスを取得する
+
+        Args:
+            modules (dict): 検索対象のモジュールが入った辞書
+            base_class (class): クラス。ここで指定したクラスを継承しているクラスを探す
+            target_name (string): 名前。ここで指定した名前のクラスインスタンスを取得する
+
+        Returns:
+            instance: クラスインスタンス
+        """
         for module in modules.values():
             for attribute_name in dir(module):
                 attribute = getattr(module, attribute_name)
@@ -226,17 +245,29 @@ class ExifToFusion():
                 return clip
         raise Exception(f"Not Found Fusion Clip: {clipName}")
         
-    def GetExif(self, mediaPoolItem) -> dict:
+    def GetExif(self, mediaPoolItem) -> ExifInfo:
         """指定されたメディアプールアイテムのExifを取得
-        """
-        meta = {}
+        """        
+        cameraIns: CameraExifSetterAbs = None
+        exif: dict = None
+        camera: str = None
+        
         filePath = mediaPoolItem.GetClipProperty("File Path")
         if pathlib.Path(filePath).suffix.lower() == ".braw" :
-            meta = self.GetBrawMeta(mediaPoolItem)
+            camera = "BMPCC"
         else:
-            data = information(filePath)
-            meta = self.GetMovMeta(data, mediaPoolItem)
-        return meta
+            exif = information(filePath)
+            camera = "standard"
+        cameraIns = self.FindSubclassInstanceWithName(self.cameraMods , CameraExifSetterAbs, camera)
+        if cameraIns is None:
+            self.ShowMessage(f"{camera}用のプラグインがありません")
+            sys.exit()
+        
+        pprint(exif)
+        exifinfo = cameraIns.GenerateExifText(exif, mediaPoolItem)
+        if exifinfo is None:
+            raise Exception("Exit text generate faild")
+        return exifinfo
     
     def GetMovMeta(self, exifObj, mediaPoolItem) -> dict:
         """BRAW以外のメタデータ取得
@@ -253,26 +284,5 @@ class ExifToFusion():
         }
         return meta
         
-    def GetBrawMeta(self, mediaPoolItem) -> dict:
-        """BRAWのメタデータを取得する
-        """
-        print(mediaPoolItem.GetMetadata())
-        angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
-        fps = mediaPoolItem.GetClipProperty("FPS")
-        ss = f"1/{int(int(fps) * 360 / int(angle))}"
-        meta = {
-            "Camera": mediaPoolItem.GetMetadata("Camera Type"),
-            "Lens": mediaPoolItem.GetMetadata("Lens Type"),
-            "Aperture": mediaPoolItem.GetMetadata("Camera Aperture"),
-            "ISO": mediaPoolItem.GetMetadata("ISO"),
-            "Shutter Speed": ss,
-            "Focal Point": mediaPoolItem.GetMetadata("Focal Point (mm)"),
-            "Distance": mediaPoolItem.GetMetadata("Distance"),
-            "FPS": mediaPoolItem.GetClipProperty("FPS"),
-            "WB": mediaPoolItem.GetMetadata("White Point (Kelvin)"),
-            "Tint": mediaPoolItem.GetMetadata("White Balance Tint")
-        }
-        return meta    
-
 if __name__ == "__main__":
     obj = ExifToFusion().main()
