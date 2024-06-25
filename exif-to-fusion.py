@@ -20,11 +20,11 @@ class ExifToFusion():
         self.settingsFile = os.path.join(scriptDir, "settings.json")
                 
     def main(self):
-        ret = self.ShowMainDialog()
+        ret: dict = self.ShowMainDialog()
         if ret is None:
             sys.exit()
             
-        fusionClipName = ret.get("FusionTitle", None)
+        fusionClipName: str = ret.get("FusionTitle", None)
         if fusionClipName is None or fusionClipName == "":
             raise Exception("Fusion clip Name blank error.")
         
@@ -67,34 +67,34 @@ class ExifToFusion():
             }
             self.SetFusionParameter(fusionComp, values)
     
-    def SaveSettings(self, settings):
+    def SaveSettings(self, settings) -> None: 
         with open(self.settingsFile, 'w') as f:
             json.dump(settings, f)
     
-    def LoadSettings(self):
+    def LoadSettings(self) -> None:
         if os.path.exists(self.settingsFile):
             with open(self.settingsFile, 'r') as f:
                 return json.load(f)
         return {}
 
-    def GetFusionTitleNames(self):
+    def GetFusionTitleNames(self) -> list[str]:
         """メディアプールのFusionタイトルのリストを取得する
         """
         folder = self.mediaPool.GetCurrentFolder()
-        titles = []
+        titles: list[str] = []
         for clip in folder.GetClipList():
             if clip.GetClipProperty("Type") == "Fusionタイトル":
                 titles.append(clip.GetClipProperty("Clip Name"))
         return titles
             
-    def IsInt(self, value):
+    def IsInt(self, value) -> bool:
         try:
             int(value)
             return True
         except ValueError:
             return False
         
-    def ShowMessage(self, message):
+    def ShowMessage(self, message) -> None:
         """無理やり標準UIでメッセージ画面を出す
         """
         comp = self.fusion.GetCurrentComp()
@@ -103,7 +103,7 @@ class ExifToFusion():
         }
         comp.AskUser("メッセージ", dialog)
         
-    def ShowMainDialog(self):
+    def ShowMainDialog(self) -> dict:
         """ダイアログを表示して対象のトラックをユーザーに選択させる
         """
         titles = self.GetFusionTitleNames()
@@ -135,7 +135,7 @@ class ExifToFusion():
         else:
             return None
     
-    def DeleteFusionTitle(self, trackIndex, targetClipName):
+    def DeleteFusionTitle(self, trackIndex, targetClipName) -> None:
         """指定したトラックのFusionタイトルをすべて削除する
         対象外のクリップがある場合は削除しない
         """
@@ -148,7 +148,7 @@ class ExifToFusion():
                 raise Exception("Processing was interrupted due to the presence of another clip on the track")
         self.timeline.DeleteClips(clips)
 
-    def SetFusionParameter(self, fusionComp, parameters):
+    def SetFusionParameter(self, fusionComp, parameters) -> None:
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
         toolList = comp.GetToolList()
@@ -182,7 +182,7 @@ class ExifToFusion():
                 return clip
         raise Exception(f"Not Found Fusion Clip: {clipName}")
         
-    def GetExif(self, mediaPoolItem):
+    def GetExif(self, mediaPoolItem) -> dict:
         """指定されたメディアプールアイテムのExifを取得
         """
         meta = {}
@@ -194,7 +194,7 @@ class ExifToFusion():
             meta = self.GetMovMeta(data, mediaPoolItem)
         return meta
     
-    def GetMovMeta(self, exifObj, mediaPoolItem):
+    def GetMovMeta(self, exifObj, mediaPoolItem) -> dict:
         """BRAW以外のメタデータ取得
         """
         meta = {
@@ -209,7 +209,7 @@ class ExifToFusion():
         }
         return meta
         
-    def GetBrawMeta(self, mediaPoolItem):
+    def GetBrawMeta(self, mediaPoolItem) -> dict:
         """BRAWのメタデータを取得する
         """
         print(mediaPoolItem.GetMetadata())
