@@ -20,7 +20,7 @@ class ExifToFusion():
         self.settingsFile = os.path.join(scriptDir, "settings.json")
                 
     def main(self):
-        ret = self.ShowDialog()
+        ret = self.ShowMainDialog()
         if ret is None:
             sys.exit()
             
@@ -34,7 +34,9 @@ class ExifToFusion():
         trackIndex = int(trackIndex)
         
         if trackIndex <= 0 or self.timeline.GetTrackCount("video") < trackIndex:
-            raise Exception(f"SrcTrack Invalid. value={trackIndex}")
+            # raise Exception(f"SrcTrack Invalid. value={trackIndex}")
+            self.ShowMessage(f"指定されたトラック`{trackIndex}`はありません\nExifの取得対象となるクリップが配置されているトラック番号を入れてください")
+            sys.exit()
 
         addTrackIndex = ret.get("DstTrack", None)
         if addTrackIndex is None or self.IsInt(addTrackIndex) == False:
@@ -91,14 +93,23 @@ class ExifToFusion():
             return True
         except ValueError:
             return False
-    
-    def ShowDialog(self):
+        
+    def ShowMessage(self, message):
+        """無理やり標準UIでメッセージ画面を出す
+        """
+        comp = self.fusion.GetCurrentComp()
+        dialog = {
+            1: {1: "text", "Name": "メッセージ", 2: "Text", "ReadOnly": True , "Wrap": True, "Default": message, "Lines": 7}
+        }
+        comp.AskUser("メッセージ", dialog)
+        
+    def ShowMainDialog(self):
         """ダイアログを表示して対象のトラックをユーザーに選択させる
         """
         titles = self.GetFusionTitleNames()
         comp = self.fusion.GetCurrentComp()
         if len(titles) == 0:
-            result = comp.AskUser("Fusionタイトルが一つもありません", {})
+            self.ShowMessage("メディアプールにFusionタイトルが一つもありません")
             return None
         titleOptions = {}
         for index, title in enumerate(titles):
@@ -114,7 +125,7 @@ class ExifToFusion():
 
         if result:
             settings_to_save = {
-                "FusionTitle": titleOptions[result["fusionTitle"] + 1],
+                "FusionTitle": titleOptions[result["fusionTitle"]],
                 "FusionTitleIndex": result["fusionTitle"],
                 "SrcTrack": result["srcTrack"],
                 "DstTrack": result["dstTrack"]
