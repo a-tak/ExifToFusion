@@ -8,15 +8,13 @@ class Standard(CameraExifSetterAbs):
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
         pprint(exiftool)
         e = ExifInfo()
-        e.Camera = exiftool.get("")
-        e.Lens = mediaPoolItem.GetMetadata("Lens Type")
-        e.Aperture =mediaPoolItem.GetMetadata("Camera Aperture")
-        e.ISO = mediaPoolItem.GetMetadata("ISO")
-        e.SS = ss
-        e.FocalPoint = mediaPoolItem.GetMetadata("Focal Point (mm)")
-        e.Distance = mediaPoolItem.GetMetadata("Distance")
+        e.Camera = exiftool.get("Model")
+        e.Lens = exiftool.get("LensModel")
+        e.Aperture= exiftool.get("Aperture")
+        e.ISO = exiftool.get("ISO")
+        e.SS = exiftool.get("ShutterSpeedValue")
+        e.FocalPoint = exiftool.get("FocalLength")
         e.FPS = mediaPoolItem.GetClipProperty("FPS")
-        e.WB = mediaPoolItem.GetMetadata("White Point (Kelvin)")
-        e.Tint =  mediaPoolItem.GetMetadata("White Balance Tint")
+        e.WB = exiftool.get("WhiteBalance")
 
         return e
