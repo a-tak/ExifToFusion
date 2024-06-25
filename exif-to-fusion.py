@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import DaVinciResolveScript as dvr_script
-from pyexifinfo import information
 from pprint import pprint
 import pathlib
 import sys
@@ -11,6 +10,8 @@ from lib.base import TitleSetterAbs
 from lib.base import CameraExifSetterAbs
 import importlib
 import pkgutil
+import subprocess
+import json
 
 class ExifToFusion():
     def __init__(self):
@@ -83,6 +84,10 @@ class ExifToFusion():
             mediaPoolItem = clip.GetMediaPoolItem()
             # Exif取得
             e = self.GetExif(mediaPoolItem)
+            # todo 暫定。exif取れなかったらスキップ
+            if e is None:
+                print(f"ExifTool not get info.")
+                continue
             
             # Fusionタイトルパラメーター設定
             values = titleIns.GenerateFusionParameter(e)
@@ -256,33 +261,46 @@ class ExifToFusion():
         if pathlib.Path(filePath).suffix.lower() == ".braw" :
             camera = "BMPCC"
         else:
-            exif = information(filePath)
+            exif = self.RunExiftool(filePath)
+            if exif is None:
+                raise Exception("Exittool can't get information")
+            # TODO Exif取れなかったらとりあえずスキップ
+            if len(exif) == 0:
+                return None
             camera = "standard"
         cameraIns = self.FindSubclassInstanceWithName(self.cameraMods , CameraExifSetterAbs, camera)
         if cameraIns is None:
             self.ShowMessage(f"{camera}用のプラグインがありません")
             sys.exit()
         
-        pprint(exif)
         exifinfo = cameraIns.GenerateExifText(exif, mediaPoolItem)
         if exifinfo is None:
             raise Exception("Exit text generate faild")
         return exifinfo
     
-    def GetMovMeta(self, exifObj, mediaPoolItem) -> dict:
-        """BRAW以外のメタデータ取得
-        """
-        meta = {
-            "Camera": exifObj.get("EXIF:Model"),
-            "Lens": exifObj.get("Composite:LensID"),
-            "Aperture": exifObj.get("Composite:Aperture"),
-            "ISO": exifObj.get("EXIF:ISO"),
-            "Shutter Speed": exifObj.get("Composite:ShutterSpeed"),
-            "Focal Point": exifObj.get("Composite:FocalLength35efl"),
-            "Distance": exifObj.get("Composite:HyperfocalDistance"),
-            "FPS": mediaPoolItem.GetClipProperty("FPS")
-        }
-        return meta
+    def RunExiftool(self, filepath: str) -> dict:
+        try:
+            result = subprocess.run(['exiftool', '-json', '-Model', '-LensModel', '-Aperture', '-FNumber', '-ISO', 
+                                     '-ShutterSpeedValue', '-FocalLength', '-WhiteBalance' , filepath], 
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.stdout is None:
+                # TODO とりあえず結果返ってこなかったらスキップする
+                return {}
+            
+            # エラーが発生した場合はエラーメッセージを表示
+            if result.stderr:
+                print(f"Error: {result.stderr}")
+                return None
+            
+            # JSON出力をパース            
+            exif_data = json.loads(result.stdout)
+            
+            # exif_dataはリストになっているため、最初の要素を返す
+            return exif_data[0]
+    
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None   
         
 if __name__ == "__main__":
     obj = ExifToFusion().main()

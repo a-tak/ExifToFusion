@@ -1,17 +1,14 @@
 from lib.base import ExifInfo, CameraExifSetterAbs
-import textwrap
+from pprint import pprint
 
-class Bmpcc(CameraExifSetterAbs):
+class Standard(CameraExifSetterAbs):
     def GetName(self) -> str:
         return "standard"
     
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
-        angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
-        fps = mediaPoolItem.GetClipProperty("FPS")
-        ss = f"1/{int(int(fps) * 360 / int(angle))}"
-
+        pprint(exiftool)
         e = ExifInfo()
-        e.Camera = mediaPoolItem.GetMetadata("Camera Type")
+        e.Camera = exiftool.get("")
         e.Lens = mediaPoolItem.GetMetadata("Lens Type")
         e.Aperture =mediaPoolItem.GetMetadata("Camera Aperture")
         e.ISO = mediaPoolItem.GetMetadata("ISO")

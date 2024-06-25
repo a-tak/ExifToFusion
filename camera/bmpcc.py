@@ -1,5 +1,4 @@
 from lib.base import ExifInfo, CameraExifSetterAbs
-import textwrap
 
 class Bmpcc(CameraExifSetterAbs):
     def GetName(self) -> str:
