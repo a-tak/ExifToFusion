@@ -14,6 +14,8 @@ class ExifInfo:
     FocalPoint: str = None
     Distance: str = None
     LUT: str = None
+    Format: str = None #JPEG / RAW
+    Size: str = None #3000x2500
 
 class TitleSetterAbs(ABC):
     @abstractmethod
