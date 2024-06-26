@@ -279,28 +279,32 @@ class ExifToFusion():
         return exifinfo
     
     def RunExiftool(self, filepath: str) -> dict:
+        filepath = os.path.abspath(filepath)
+        
         try:
-            result = subprocess.run(['exiftool', '-json', '-Model', '-LensModel', '-Aperture', '-FNumber', '-ISO', 
-                                     '-ShutterSpeedValue', '-FocalLength', '-WhiteBalance' , filepath], 
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            if result.stdout is None:
-                # TODO とりあえず結果返ってこなかったらスキップする
-                return {}
-            
-            # エラーが発生した場合はエラーメッセージを表示
-            if result.stderr:
-                print(f"Error: {result.stderr}")
+            process = subprocess.Popen(['exiftool', '-json', '-Model', '-LensModel', '-Aperture', '-FNumber', '-ISO', 
+                                        '-ShutterSpeedValue', '-FocalLength', '-WhiteBalance' , filepath], 
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = process.communicate()
+            if process.returncode != 0:
+                # エラーが発生した場合、エラー出力を表示してNoneを返す
+                print(f"ExifTool returned an error: {stderr.decode().strip()}")
                 return None
             
-            # JSON出力をパース            
-            exif_data = json.loads(result.stdout)
-            
-            # exif_dataはリストになっているため、最初の要素を返す
-            return exif_data[0]
-    
+            # 標準出力を読み取る
+            result = stdout.strip()        
+            if result is None:
+                return {}
         except Exception as e:
             print(f"An error occurred: {e}")
-            return None   
+            return None
+        
+        # JSON出力をパース 
+        result = result.decode("utf-8").rstrip("\r\n")
+        exif_data = json.loads(result)
+        
+        # exif_dataはリストになっているため、最初の要素を返す
+        return exif_data[0]
         
 if __name__ == "__main__":
     obj = ExifToFusion().main()
