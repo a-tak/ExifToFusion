@@ -63,16 +63,7 @@ class ExifToFusion():
         if delRet == False:
             self.ShowMessage("出力先のトラックに他のクリップが既に存在します。\n削除してやり直すか別のトラックを指定してください。")
             sys.exit()
-        
-        # 対象のタイトルパラメーター生成クラスを取得
-        titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
-        if len(titleMods) == 0:
-            raise Exception("Title parameter generator module not found")
-        titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
-        if titleIns is None:
-            self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
-            sys.exit()
-        
+                
         # 対象のクリップを取得
         trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
@@ -90,6 +81,15 @@ class ExifToFusion():
                 continue
             
             # Fusionタイトルパラメーター設定
+            # 一回の操作で1種類のタイトルしか作らないのでループの外で作った方が効率的だがクラス初期化毎回したいのでここで生成している
+            titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
+            if len(titleMods) == 0:
+                raise Exception("Title parameter generator module not found")
+            titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
+            if titleIns is None:
+                self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
+                sys.exit()
+
             values = titleIns.GenerateFusionParameter(e)
             self.SetFusionParameter(fusionComp, values)            
             
@@ -264,7 +264,7 @@ class ExifToFusion():
             exif = self.RunExiftool(filePath)
             if exif is None:
                 raise Exception("Exittool can't get information")
-            # TODO Exif取れなかったらとりあえずスキップ
+            # Exif取れなかったらとりあえずスキップ
             if len(exif) == 0:
                 return None
             camera = "standard"
