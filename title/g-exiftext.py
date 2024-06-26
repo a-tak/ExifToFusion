@@ -1,14 +1,21 @@
 from lib.base import ExifInfo, TitleSetterAbs
-import textwrap
 
 class G_ApertureText_06_ex(TitleSetterAbs):
     def GetName(self) -> str:
         return "G_ApertureText-06-ex"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        aperture = " "
+        if exifinfo.Aperture is not None:
+            aperture = exifinfo.Aperture
+        txt = " "
+        if exifinfo.SS is not None:
+            txt = f"SS:{exifinfo.SS}"
+        if exifinfo.ISO is not None:
+            txt = txt + f"ISO:{exifinfo.ISO}"
         return {
-            "Input1": exifinfo.Aperture,
-            "Input13": f"SS:{exifinfo.SS} ISO:{exifinfo.ISO}"
+            "Input1": aperture,
+            "Input13": txt,
         }
 
 class G_ApertureText_06(TitleSetterAbs):
@@ -16,8 +23,11 @@ class G_ApertureText_06(TitleSetterAbs):
         return "G_ApertureText-06"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        value = ""
+        if exifinfo.Aperture is not None:
+            value = exifinfo.Aperture
         return {
-            "Input1": exifinfo.Aperture,
+            "Input1": value,
         }
 class G_CameraExif_Text(TitleSetterAbs):
     def __init__(self):
