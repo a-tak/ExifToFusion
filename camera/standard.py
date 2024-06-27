@@ -6,7 +6,6 @@ class Standard(CameraExifSetterAbs):
         return "standard"
     
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
-        pprint(exiftool)
         e = ExifInfo()
         e.Camera = exiftool.get("Model")
         e.Lens = exiftool.get("LensModel")

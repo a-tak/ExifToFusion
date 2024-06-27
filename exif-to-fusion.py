@@ -63,19 +63,16 @@ class ExifToFusion():
         if delRet == False:
             self.ShowMessage("出力先のトラックに他のクリップが既に存在します。\n削除してやり直すか別のトラックを指定してください。")
             sys.exit()
-        
-        # 対象のタイトルパラメーター生成クラスを取得
-        titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
-        if len(titleMods) == 0:
-            raise Exception("Title parameter generator module not found")
-        titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
-        if titleIns is None:
-            self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
-            sys.exit()
-        
+                
         # 対象のクリップを取得
         trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
+        
+        # タイトル毎の変換モジュール取得
+        titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
+        if len(titleMods) == 0:
+            raise Exception("Title parameter generator module not found")
+
         for clip in clips:
                                     
             # Fusionタイトル タイムライン追加
@@ -90,8 +87,14 @@ class ExifToFusion():
                 continue
             
             # Fusionタイトルパラメーター設定
+            # 一回の操作で1種類のタイトルしか作らないのでループの外で作った方が効率的だがクラス初期化毎回したいのでここで生成している
+            titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
+            if titleIns is None:
+                self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
+                sys.exit()
+
             values = titleIns.GenerateFusionParameter(e)
-            self.SetFusionParameter(fusionComp, values)            
+            self.SetFusionParameter(fusionComp, titleIns, values)            
             
     def LoadModulesFromFolder(self, folder, pkgName) -> dict:
         """指定したフォルダのモジュールを取得する
@@ -216,15 +219,15 @@ class ExifToFusion():
         self.timeline.DeleteClips(clips)
         return True
 
-    def SetFusionParameter(self, fusionComp, parameters) -> None:
+    def SetFusionParameter(self, fusionComp, titleIns: TitleSetterAbs, parameters: dict) -> None:
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
         toolList = comp.GetToolList()
-        tool = list(toolList.values())[0]
-        
-        if tool is not None:
-            for key, value in parameters.items():
-                tool[key] = value
+        tool = comp.FindTool(titleIns.GetFirstToolName())
+        if tool is None:
+            raise Exception("The tool specified by 'GetFirstToolName' was not found in the Fusion composition.")
+        for key, value in parameters.items():
+            tool[key] = value
 
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
         clipInfo = {
@@ -264,7 +267,7 @@ class ExifToFusion():
             exif = self.RunExiftool(filePath)
             if exif is None:
                 raise Exception("Exittool can't get information")
-            # TODO Exif取れなかったらとりあえずスキップ
+            # Exif取れなかったらとりあえずスキップ
             if len(exif) == 0:
                 return None
             camera = "standard"

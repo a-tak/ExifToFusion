@@ -20,11 +20,28 @@ class ExifInfo:
 class TitleSetterAbs(ABC):
     @abstractmethod
     def GetName(self) -> str:
+        """メディアプールのタイトルのクリップ名
+        """
+        pass
+    
+    @abstractmethod
+    def GetFirstToolName(self) -> str:
+        """Fusionページ開いたときの一番最初のツールの名前
+        """
         pass
 
     @abstractmethod
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        """Fusionに渡すパラメーター用の辞書を作る
+        """
         pass
+
+    def Concat(self, baseStr: str, addStr: str, noneCheckVar: str):
+        """noneCheckVarがNone以外のときだけ文字列を結合する
+        """
+        if noneCheckVar is None:
+            return baseStr
+        return baseStr + addStr
 
 class CameraExifSetterAbs(ABC):
     @abstractmethod
