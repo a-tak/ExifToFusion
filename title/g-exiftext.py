@@ -1,5 +1,16 @@
 from lib.base import ExifInfo, TitleSetterAbs
 
+class G_ApertureText_06(TitleSetterAbs):
+    def GetName(self) -> str:
+        return "G_ApertureText-06"
+    
+    def GetFirstToolName(self) -> str:
+        return "GApertureText6"
+    
+    def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        return {
+            "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
+        }
 class G_ApertureText_06_ex(TitleSetterAbs):
     def GetName(self) -> str:
         return "G_ApertureText-06-ex"
@@ -17,17 +28,63 @@ class G_ApertureText_06_ex(TitleSetterAbs):
             "Input13": txt,
         }
 
-class G_ApertureText_06(TitleSetterAbs):
+class G_ApertureText_08(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-06"
+        return "G_ApertureText-08"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText6"
+        return "GApertureText8"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
             "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
         }
+class G_ApertureText_08_ex(TitleSetterAbs):
+    def GetName(self) -> str:
+        return "G_ApertureText-08-ex"
+    
+    def GetFirstToolName(self) -> str:
+        return "GApertureText8ex1"
+    
+
+    def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        aperture = super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture)
+        txt = super().Concat("", f"SS:{exifinfo.SS}", exifinfo.SS)
+        txt = super().Concat(txt, f"ISO:{exifinfo.ISO}", exifinfo.ISO)
+        return {
+            "Input1": aperture,
+            "Input13": txt,
+        }
+
+class G_ApertureText_12(TitleSetterAbs):
+    def GetName(self) -> str:
+        return "G_ApertureText-12"
+    
+    def GetFirstToolName(self) -> str:
+        return "G_ApertureText12setting"
+    
+    def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        return {
+            "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
+        }
+class G_ApertureText_12_ex(TitleSetterAbs):
+    def GetName(self) -> str:
+        return "G_ApertureText-12-ex"
+    
+    def GetFirstToolName(self) -> str:
+        return "GApertureText12ex"
+    
+
+    def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        aperture = super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture)
+        txt = super().Concat("", f"SS:{exifinfo.SS}", exifinfo.SS)
+        txt = super().Concat(txt, f"ISO:{exifinfo.ISO}", exifinfo.ISO)
+        return {
+            "Input1": aperture,
+            "Input13": txt,
+        }
+
+
 class G_CameraExif_Text(TitleSetterAbs):
     def __init__(self):
         self.lines = []
