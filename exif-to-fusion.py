@@ -67,6 +67,12 @@ class ExifToFusion():
         # 対象のクリップを取得
         trackType = "video"
         clips = self.timeline.GetItemListInTrack(trackType, trackIndex)
+        
+        # タイトル毎の変換モジュール取得
+        titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
+        if len(titleMods) == 0:
+            raise Exception("Title parameter generator module not found")
+
         for clip in clips:
                                     
             # Fusionタイトル タイムライン追加
@@ -82,9 +88,6 @@ class ExifToFusion():
             
             # Fusionタイトルパラメーター設定
             # 一回の操作で1種類のタイトルしか作らないのでループの外で作った方が効率的だがクラス初期化毎回したいのでここで生成している
-            titleMods = self.LoadModulesFromFolder(self.titleDir, self.titlePkg)
-            if len(titleMods) == 0:
-                raise Exception("Title parameter generator module not found")
             titleIns: TitleSetterAbs  = self.FindSubclassInstanceWithName(titleMods, TitleSetterAbs, fusionClipName)
             if titleIns is None:
                 self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
