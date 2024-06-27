@@ -94,7 +94,7 @@ class ExifToFusion():
                 sys.exit()
 
             values = titleIns.GenerateFusionParameter(e)
-            self.SetFusionParameter(fusionComp, values)            
+            self.SetFusionParameter(fusionComp, titleIns, values)            
             
     def LoadModulesFromFolder(self, folder, pkgName) -> dict:
         """指定したフォルダのモジュールを取得する
@@ -219,15 +219,15 @@ class ExifToFusion():
         self.timeline.DeleteClips(clips)
         return True
 
-    def SetFusionParameter(self, fusionComp, parameters) -> None:
+    def SetFusionParameter(self, fusionComp, titleIns: TitleSetterAbs, parameters: dict) -> None:
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
         toolList = comp.GetToolList()
-        tool = list(toolList.values())[0]
-        
-        if tool is not None:
-            for key, value in parameters.items():
-                tool[key] = value
+        tool = comp.FindTool(titleIns.GetFirstToolName())
+        if tool is None:
+            raise Exception("The tool specified by 'GetFirstToolName' was not found in the Fusion composition.")
+        for key, value in parameters.items():
+            tool[key] = value
 
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
         clipInfo = {

@@ -20,10 +20,20 @@ class ExifInfo:
 class TitleSetterAbs(ABC):
     @abstractmethod
     def GetName(self) -> str:
+        """メディアプールのタイトルのクリップ名
+        """
+        pass
+    
+    @abstractmethod
+    def GetFirstToolName(self) -> str:
+        """Fusionページ開いたときの一番最初のツールの名前
+        """
         pass
 
     @abstractmethod
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
+        """Fusionに渡すパラメーター用の辞書を作る
+        """
         pass
 
 class CameraExifSetterAbs(ABC):

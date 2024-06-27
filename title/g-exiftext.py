@@ -4,6 +4,9 @@ class G_ApertureText_06_ex(TitleSetterAbs):
     def GetName(self) -> str:
         return "G_ApertureText-06-ex"
     
+    def GetFirstToolName(self) -> str:
+        return "GApertureText06ex"
+
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         aperture = " "
         if exifinfo.Aperture is not None:
@@ -22,6 +25,9 @@ class G_ApertureText_06(TitleSetterAbs):
     def GetName(self) -> str:
         return "G_ApertureText-06"
     
+    def GetFirstToolName(self) -> str:
+        return "GApertureText6"
+    
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         value = ""
         if exifinfo.Aperture is not None:
@@ -35,6 +41,9 @@ class G_CameraExif_Text(TitleSetterAbs):
 
     def GetName(self) -> str:
         return "G_CameraExif-Text"
+
+    def GetFirstToolName(self) -> str:
+        return "G_CameraExifText"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         self.SetValue("Camera", exifinfo.Camera)
