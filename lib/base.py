@@ -36,6 +36,13 @@ class TitleSetterAbs(ABC):
         """
         pass
 
+    def Concat(self, baseStr: str, addStr: str, noneCheckVar: str):
+        """noneCheckVarがNone以外のときだけ文字列を結合する
+        """
+        if noneCheckVar is None:
+            return baseStr
+        return baseStr + addStr
+
 class CameraExifSetterAbs(ABC):
     @abstractmethod
     def GetName(self) -> str:
