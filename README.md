@@ -2,7 +2,7 @@
 
 ## はじめに
 
-Windows環境での使い方を記載。Macの場合は[こちら](https://note.com/littlebuddha/n/nf7325e8c16ea)参考にされると良いかもしれません。
+動画や写真のEXIF情報を取得し各種Fusionタイトルにセットしてタイムラインに追加するスクリプトです
 
 DaVinci Resolve 19 Studioで動作確認しています。
 
@@ -12,7 +12,12 @@ DaVinci Resolve 19 Studioで動作確認しています。
 
 ## Pythonインストール
 
+Windows環境での例を記載。
+
 なぜかGUIのインストーラーではDaVinci Resolveから認識されなくて、Chocolateyだとうまくいった。
+
+Chocolateyのインストールはこちら。
+https://chocolatey.org/install#individual
 
 PowerShellを管理者権限で起動して以下実行。
 
@@ -51,7 +56,7 @@ PowerShellで以下のコマンドを入れてもよい
 Exiftoolのインストールが必要になります。
 
 ```powershell
-choco install exiftool
+choco install -y exiftool
 ```
 
 ## 作成したスクリプトの置き場
@@ -69,6 +74,10 @@ choco install exiftool
 ### メディアプールにタイトルを登録
 
 このスクリプトはメディアプールに登録してあるタイトルを使用します。
+現在、対応しているタイトルは以下です。
+
+* Text+
+* [G-ExifText](https://note.com/gaipromotion/n/n6e55aa1a0d5f)
 
 スクリプトで処理したいタイトルを`一度タイムラインにドロップして`、サイズや位置などを調整した後、タイムラインに入れたタイトルを`メディアプールにドロップして登録してください。`
 
@@ -76,11 +85,9 @@ choco install exiftool
 
 `ワークスペース` の `スクリプト` から実行可能
 
-## 注意事項
+#### 注意事項
 
 * 既に追加先のトラックに他のFusionタイトルが追加されている状態だとエラーになります。一度Fusionタイトルを消すか別のトラックに作成してください。
 * スクリプトが動作しないときは一度Fusionページを表示してから実行してください
 * スクリプトにショートカットを割り当てて実行する場合、DaVinci Resolve起動後一回目は`ワークスペース` > `スクリプト` から実行してください。理由は分かりませんが初回はショートカットではスクリプトが実行されません。
-
-## 参考
 
