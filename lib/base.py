@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+import re
+from pprint import pprint
 
 @dataclass
 class ExifInfo:
@@ -36,12 +38,29 @@ class TitleSetterAbs(ABC):
         """
         pass
 
-    def Concat(self, baseStr: str, addStr: str, noneCheckVar: str):
+    def Concat(self, baseStr: str, addStr: str, noneCheckVar: str) -> str:
         """noneCheckVarがNone以外のときだけ文字列を結合する
         """
         if noneCheckVar is None:
             return baseStr
         return baseStr + addStr
+    
+    def GetFNumber(self, exifinfo: ExifInfo) -> str:
+        """F値をフォーマットして表記を統一する
+        """
+        value = exifinfo.Aperture
+        
+        if value is None:
+            return ""
+        value = str(value)
+        headChar = "F"
+
+        # 数値部分のみ取り出し
+        numbers = re.findall(r'\d+\.\d+|\d+', value)
+        if len(numbers) == 0:
+            return ""
+        # 最初に見つかった数字にFつけて返す
+        return headChar + numbers[0]
 
 class CameraExifSetterAbs(ABC):
     @abstractmethod

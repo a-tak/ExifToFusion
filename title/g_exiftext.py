@@ -9,7 +9,7 @@ class G_ApertureText_06(TitleSetterAbs):
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
-            "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
+            "Input1": super().Concat("", super().GetFNumber(exifinfo), exifinfo.Aperture),
         }
 class G_ApertureText_06_ex(TitleSetterAbs):
     def GetName(self) -> str:
@@ -20,7 +20,7 @@ class G_ApertureText_06_ex(TitleSetterAbs):
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
-        aperture = super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture)
+        aperture = super().Concat("", super().GetFNumber(exifinfo), exifinfo.Aperture)
         txt = super().Concat("", f"SS:{exifinfo.SS}", exifinfo.SS)
         txt = super().Concat(txt, f"ISO:{exifinfo.ISO}", exifinfo.ISO)
         return {
@@ -37,7 +37,7 @@ class G_ApertureText_08(TitleSetterAbs):
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
-            "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
+            "Input1": super().Concat("", super().GetFNumber(exifinfo), exifinfo.Aperture),
         }
 class G_ApertureText_08_ex(TitleSetterAbs):
     def GetName(self) -> str:
@@ -48,7 +48,7 @@ class G_ApertureText_08_ex(TitleSetterAbs):
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
-        aperture = super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture)
+        aperture = super().Concat("", f"{super().GetFNumber(exifinfo)}", exifinfo.Aperture)
         txt = super().Concat("", f"SS:{exifinfo.SS}", exifinfo.SS)
         txt = super().Concat(txt, f"ISO:{exifinfo.ISO}", exifinfo.ISO)
         return {
@@ -65,7 +65,7 @@ class G_ApertureText_12(TitleSetterAbs):
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
-            "Input1": super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture),
+            "Input1": super().Concat("", f"{super().GetFNumber(exifinfo)}", exifinfo.Aperture),
         }
 class G_ApertureText_12_ex(TitleSetterAbs):
     def GetName(self) -> str:
@@ -76,7 +76,7 @@ class G_ApertureText_12_ex(TitleSetterAbs):
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
-        aperture = super().Concat("", f"{exifinfo.Aperture}", exifinfo.Aperture)
+        aperture = super().Concat("", super().GetFNumber(exifinfo), exifinfo.Aperture)
         txt = super().Concat("", f"SS:{exifinfo.SS}", exifinfo.SS)
         txt = super().Concat(txt, f"ISO:{exifinfo.ISO}", exifinfo.ISO)
         return {
@@ -98,7 +98,7 @@ class G_CameraExif_Text(TitleSetterAbs):
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         self.SetValue("Camera", exifinfo.Camera)
         self.SetValue("Lens", exifinfo.Lens)
-        self.SetValue("F.Number", exifinfo.Aperture)
+        self.SetValue("F.Number", super().GetFNumber(exifinfo))
         self.SetValue("SS", exifinfo.SS)
         self.SetValue("ISO", exifinfo.ISO)
         self.SetValue("WB", exifinfo.WB)
@@ -112,6 +112,6 @@ class G_CameraExif_Text(TitleSetterAbs):
         }
     
     def SetValue(self, name: str, value: str):
-        if value is None:
+        if value is None or value == "":
             return
         self.lines.append(f"{name} : {value}")
