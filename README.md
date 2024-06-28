@@ -1,5 +1,11 @@
 # ExifToFusion
 
+詳しい使い方は
+
+https://github.com/a-tak/ExifToFusion/wiki
+
+に記載していきます(作成中!)
+
 ## はじめに
 
 動画や写真のEXIF情報を取得し各種Fusionタイトルにセットしてタイムラインに追加するスクリプトです
