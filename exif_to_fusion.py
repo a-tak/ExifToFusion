@@ -285,8 +285,8 @@ class ExifToFusion():
         filepath = os.path.abspath(filepath)
         
         try:
-            process = subprocess.Popen(['exiftool', '-json', '-Model', '-LensModel', '-Aperture', '-FNumber', '-ISO', 
-                                        '-ShutterSpeedValue', '-FocalLength', '-WhiteBalance' , filepath], 
+            process = subprocess.Popen(['exiftool', '-json', '-Model', '-LensId', '-Aperture', '-FNumber', '-ISO', 
+                                        '-ShutterSpeed', '-FocalLength', '-WhiteBalance', '-PhotoStyle', '-ImageSize', '-FileType' , filepath], 
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
             if process.returncode != 0:
