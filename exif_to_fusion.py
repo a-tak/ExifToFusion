@@ -75,10 +75,15 @@ class ExifToFusion():
 
         for clip in clips:
                                     
+            mediaPoolItem = clip.GetMediaPoolItem()
+            if mediaPoolItem is None:
+                # ジェネレーターにもタイトル追加仕様とするのでスキップさせる
+                print("Skip Not media pool item.")
+                continue
+
             # Fusionタイトル タイムライン追加
             fusionComp = self.AddToTimeline(clip, srcFusionComp, addTrackIndex)
 
-            mediaPoolItem = clip.GetMediaPoolItem()
             # Exif取得
             e = self.GetExif(mediaPoolItem)
             # todo 暫定。exif取れなかったらスキップ
