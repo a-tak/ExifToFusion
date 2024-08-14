@@ -2,10 +2,10 @@ from lib.base import ExifInfo, TitleSetterAbs
 
 class G_ApertureText_06(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-06"
+        return "G-ApertureText-06"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText6"
+        return "GApertureText06_new11"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
@@ -13,10 +13,10 @@ class G_ApertureText_06(TitleSetterAbs):
         }
 class G_ApertureText_06_ex(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-06-ex"
+        return "G-ApertureText-06-ex"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText06ex"
+        return "GApertureText06ex_new"
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
@@ -30,10 +30,10 @@ class G_ApertureText_06_ex(TitleSetterAbs):
 
 class G_ApertureText_08(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-08"
+        return "G-ApertureText-08"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText8"
+        return "GApertureText08_new"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
@@ -41,10 +41,10 @@ class G_ApertureText_08(TitleSetterAbs):
         }
 class G_ApertureText_08_ex(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-08-ex"
+        return "G-ApertureText-08-ex"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText8ex1"
+        return "GApertureText08ex_new"
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
@@ -58,10 +58,10 @@ class G_ApertureText_08_ex(TitleSetterAbs):
 
 class G_ApertureText_12(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-12"
+        return "G-ApertureText-12"
     
     def GetFirstToolName(self) -> str:
-        return "G_ApertureText12setting"
+        return "GApertureText12_new"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         return {
@@ -69,10 +69,10 @@ class G_ApertureText_12(TitleSetterAbs):
         }
 class G_ApertureText_12_ex(TitleSetterAbs):
     def GetName(self) -> str:
-        return "G_ApertureText-12-ex"
+        return "G-ApertureText-12-ex"
     
     def GetFirstToolName(self) -> str:
-        return "GApertureText12ex"
+        return "GApertureText12ex_new1"
     
 
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
@@ -90,10 +90,10 @@ class G_CameraExif_Text(TitleSetterAbs):
         self.lines = []
 
     def GetName(self) -> str:
-        return "G_CameraExif-Text"
+        return "G-CameraExif-Text"
 
     def GetFirstToolName(self) -> str:
-        return "G_CameraExifText"
+        return "GCameraExifText_new1"
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         self.SetValue("Camera", exifinfo.Camera)
