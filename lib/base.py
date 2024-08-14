@@ -12,12 +12,13 @@ class ExifInfo:
     SS: str = None
     WB: str = None
     Tint: str = None
-    FPS: str  = None
+    FPS: str = None
     FocalPoint: str = None
     Distance: str = None
     LUT: str = None
-    Format: str = None #JPEG / RAW
-    Size: str = None #3000x2500
+    Format: str = None  #JPEG / RAW
+    Size: str = None  #3000x2500
+    PhotoStyle: str = None
 
 class TitleSetterAbs(ABC):
     @abstractmethod
@@ -25,7 +26,7 @@ class TitleSetterAbs(ABC):
         """メディアプールのタイトルのクリップ名
         """
         pass
-    
+
     @abstractmethod
     def GetFirstToolName(self) -> str:
         """Fusionページ開いたときの一番最初のツールの名前
@@ -44,12 +45,12 @@ class TitleSetterAbs(ABC):
         if noneCheckVar is None:
             return baseStr
         return baseStr + addStr
-    
+
     def GetFNumber(self, exifinfo: ExifInfo) -> str:
         """F値をフォーマットして表記を統一する
         """
         value = exifinfo.Aperture
-        
+
         if value is None:
             return ""
         value = str(value)
@@ -70,4 +71,3 @@ class CameraExifSetterAbs(ABC):
     @abstractmethod
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
         pass
-    
