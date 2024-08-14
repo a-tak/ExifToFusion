@@ -16,9 +16,10 @@ class Standard(CameraExifSetterAbs):
         e.ISO = exiftool.get("ISO")
         e.SS = exiftool.get("ShutterSpeed")
         e.FocalPoint = exiftool.get("FocalLength")
-        e.FPS = mediaPoolItem.GetClipProperty("FPS")
         e.WB = exiftool.get("WhiteBalance")
         e.PhotoStyle = exiftool.get("PhotoStyle")
         e.Size = exiftool.get("ImageSize")
         e.Format = exiftool.get("FileType")
+        if e.Format != "JPEG" and e.Format != "DNG":
+            e.FPS = mediaPoolItem.GetClipProperty("FPS")
         return e
