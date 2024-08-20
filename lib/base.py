@@ -19,6 +19,7 @@ class ExifInfo:
     Format: str = None  #JPEG / RAW
     Size: str = None  #3000x2500
     PhotoStyle: str = None
+    Codec: str = None
 
 class TitleSetterAbs(ABC):
     @abstractmethod

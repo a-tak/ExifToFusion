@@ -291,7 +291,8 @@ class ExifToFusion():
         
         try:
             process = subprocess.Popen(['exiftool', '-json', '-Model', '-LensId', '-Aperture', '-FNumber', '-ISO', 
-                                        '-ShutterSpeed', '-FocalLength', '-WhiteBalance', '-PhotoStyle', '-ImageSize', '-FileType' , filepath], 
+                                        '-ShutterSpeed', '-FocalLength', '-WhiteBalance', '-PhotoStyle', '-ImageSize', '-FileType',
+                                         '-PanasonicSemi-ProMetadataXml' , filepath], 
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
             if process.returncode != 0:
@@ -310,6 +311,7 @@ class ExifToFusion():
         # JSON出力をパース 
         result = result.decode("utf-8").rstrip("\r\n")
         exif_data = json.loads(result)
+        # pprint(exif_data[0])
         
         # exif_dataはリストになっているため、最初の要素を返す
         return exif_data[0]

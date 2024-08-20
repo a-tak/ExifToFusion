@@ -105,6 +105,7 @@ class G_CameraExif_Text(TitleSetterAbs):
         self.SetValue("ISO", exifinfo.ISO)
         self.SetValue("WB", exifinfo.WB)
         self.SetValue("Format", exifinfo.Format)
+        self.SetValue("Codec", exifinfo.Codec)
         if exifinfo.Format != "JPEG":
             self.SetValue("FPS",exifinfo.FPS)
         self.SetValue("Size", exifinfo.Size)
