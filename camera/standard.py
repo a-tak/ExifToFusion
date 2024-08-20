@@ -1,5 +1,6 @@
 from lib.base import ExifInfo, CameraExifSetterAbs
 from pprint import pprint
+import xml.etree.ElementTree as ET
 
 
 class Standard(CameraExifSetterAbs):
@@ -22,4 +23,13 @@ class Standard(CameraExifSetterAbs):
         e.Format = exiftool.get("FileType")
         if e.Format != "JPEG" and e.Format != "DNG":
             e.FPS = mediaPoolItem.GetClipProperty("FPS")
+        #XML内の情報取得
+        xmlText = exiftool.get("PanasonicSemi-ProMetadataXml")
+        if xmlText:
+            xml = ET.fromstring(xmlText)
+            #Codec取得 バージョン大きい方を優先
+            for item in xml.iter("{urn:schemas-Professional-Plug-in:Semi-Pro:ClipMetadata:v1.0}Codec"):
+                e.Codec = item.text.replace("_", " ")
+            for item in xml.iter("{urn:schemas-Professional-Plug-in:Semi-Pro:ClipMetadata:v1.1}Codec"):
+                e.Codec = item.text.replace("_", " ")
         return e
