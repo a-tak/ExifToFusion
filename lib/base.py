@@ -20,6 +20,7 @@ class ExifInfo:
     Size: str = None  #3000x2500
     PhotoStyle: str = None
     Codec: str = None
+    CompressionRatio: str = None #圧縮率。BRAW。
 
 class TitleSetterAbs(ABC):
     @abstractmethod
