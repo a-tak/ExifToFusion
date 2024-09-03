@@ -110,7 +110,6 @@ class G_CameraExif_Text(TitleSetterAbs):
         if exifinfo.Format != "JPEG":
             self.SetValue("FPS",exifinfo.FPS)
         self.SetValue("Size", exifinfo.Size)
-        self.SetValue("LUT", exifinfo.LUT)
         self.SetValue("Photo Style", exifinfo.PhotoStyle)
         
         result = "\n".join(self.lines)
