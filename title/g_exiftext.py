@@ -2,7 +2,7 @@ from lib.base import ExifInfo, TitleSetterAbs
 
 class G_ApertureText_06(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-06"]
+        return ["G_ApertureText-06", "G-ApertureText-06"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText06", "GApertureText06_new11"]
@@ -13,7 +13,7 @@ class G_ApertureText_06(TitleSetterAbs):
         }
 class G_ApertureText_06_ex(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-06-ex"]
+        return ["G_ApertureText-06-ex", "G-ApertureText-06-ex"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText06ex", "GApertureText06ex_new"]
@@ -30,7 +30,7 @@ class G_ApertureText_06_ex(TitleSetterAbs):
 
 class G_ApertureText_08(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-08"]
+        return ["G_ApertureText-08", "G-ApertureText-08"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText08", "GApertureText08_new"]
@@ -41,7 +41,7 @@ class G_ApertureText_08(TitleSetterAbs):
         }
 class G_ApertureText_08_ex(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-08-ex"]
+        return ["G_ApertureText-08-ex", "G-ApertureText-08-ex"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText08ex", "GApertureText08ex_new"]
@@ -58,7 +58,7 @@ class G_ApertureText_08_ex(TitleSetterAbs):
 
 class G_ApertureText_12(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-12"]
+        return ["G_ApertureText-12", "G-ApertureText-12"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText12", "GApertureText12_new"]
@@ -69,7 +69,7 @@ class G_ApertureText_12(TitleSetterAbs):
         }
 class G_ApertureText_12_ex(TitleSetterAbs):
     def GetNames(self) -> list[str]:
-        return ["G-ApertureText-12-ex"]
+        return ["G_ApertureText-12-ex", "G-ApertureText-12-ex"]
 
     def GetFirstToolNames(self) -> list[str]:
         return ["G_ApertureText12ex", "GApertureText12ex_new1"]
