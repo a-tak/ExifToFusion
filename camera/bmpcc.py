@@ -4,9 +4,7 @@ class Bmpcc(CameraExifSetterAbs):
     def GetNames(self) -> str:
         return ["BMPCC"]
     
-    def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
-        print(f"BRAW Metadata: {mediaPoolItem.GetMetadata()}")
-        
+    def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:        
         angle = mediaPoolItem.GetMetadata("Shutter Angle")[:-1] #末尾の「°」を消す
         fps = mediaPoolItem.GetClipProperty("FPS")
         ss = f"1/{int(int(fps) * 360 / int(angle))}"
