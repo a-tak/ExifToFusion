@@ -24,13 +24,13 @@ class ExifInfo:
 
 class TitleSetterAbs(ABC):
     @abstractmethod
-    def GetName(self) -> str:
+    def GetNames(self) -> list[str]:
         """メディアプールのタイトルのクリップ名
         """
         pass
 
     @abstractmethod
-    def GetFirstToolName(self) -> str:
+    def GetFirstToolNames(self) -> list[str]:
         """Fusionページ開いたときの一番最初のツールの名前
         """
         pass
@@ -67,7 +67,7 @@ class TitleSetterAbs(ABC):
 
 class CameraExifSetterAbs(ABC):
     @abstractmethod
-    def GetName(self) -> str:
+    def GetNames(self) -> list[str]:
         pass
 
     @abstractmethod

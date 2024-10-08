@@ -5,8 +5,8 @@ import xml.etree.ElementTree as ET
 
 class Standard(CameraExifSetterAbs):
 
-    def GetName(self) -> str:
-        return "standard"
+    def GetNames(self) -> str:
+        return ["standard"]
 
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
         pprint(exiftool)

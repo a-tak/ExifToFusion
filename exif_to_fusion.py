@@ -147,10 +147,10 @@ class ExifToFusion():
                 if isinstance(attribute, type) and issubclass(
                         attribute, base_class) and attribute is not base_class:
                     # クラスが指定したベースクラスのサブクラスであることを確認
-                    if hasattr(attribute, 'GetName') and callable(
-                            getattr(attribute, 'GetName')):
+                    if hasattr(attribute, 'GetNames') and callable(
+                            getattr(attribute, 'GetNames')):
                         class_instance = attribute()
-                        if class_instance.GetName() == target_name:
+                        if target_name in class_instance.GetNames():
                             print(
                                 f"Found instance of {attribute_name} in module {module.__name__}"
                             )
@@ -280,7 +280,12 @@ class ExifToFusion():
         comp = fusionComp.GetFusionCompByIndex(1)
         # Fusionコンポジションの最初のツールを取得してくる
         toolList = comp.GetToolList()
-        tool = comp.FindTool(titleIns.GetFirstToolName())
+        tool = None
+        for toolName in titleIns.GetFirstToolNames():
+            tool = comp.FindTool(toolName)
+            if tool is not None:
+                break
+        
         if tool is None:
             self.ShowMessage(f"Fusionタイトルが対応していないバージョンの可能性があります。")
             sys.exit()
