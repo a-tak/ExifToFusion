@@ -1,8 +1,8 @@
 from lib.base import ExifInfo, CameraExifSetterAbs
 
 class Bmpcc(CameraExifSetterAbs):
-    def GetName(self) -> str:
-        return "BMPCC"
+    def GetNames(self) -> str:
+        return ["BMPCC"]
     
     def GenerateExifText(self, exiftool: dict, mediaPoolItem) -> ExifInfo:
         print(f"BRAW Metadata: {mediaPoolItem.GetMetadata()}")

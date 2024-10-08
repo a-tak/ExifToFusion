@@ -7,8 +7,8 @@ class Text_Plus(TitleSetterAbs):
     def GetName(self) -> str:
         return "Text+"
     
-    def GetFirstToolName(self) -> str:
-        return "Template"
+    def GetFirstToolNames(self) -> list[str]:
+        return ["Template"]
     
     def GenerateFusionParameter(self, exifinfo: ExifInfo) -> dict:
         self.SetValue("Camera", exifinfo.Camera)
