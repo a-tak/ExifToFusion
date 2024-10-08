@@ -100,12 +100,8 @@ class ExifToFusion():
 
             # Fusionタイトルパラメーター設定
             # 一回の操作で1種類のタイトルしか作らないのでループの外で作った方が効率的だがクラス初期化毎回したいのでここで生成している
-            print(f"デバッグ: titleMods = {titleMods}")
-            print(f"デバッグ: TitleSetterAbs = {TitleSetterAbs}")
-            print(f"デバッグ: fusionClipName = {fusionClipName}")
             titleIns: TitleSetterAbs = self.FindSubclassInstanceWithName(
                 titleMods, TitleSetterAbs, fusionClipName)
-            print(f"デバッグ: titleIns = {titleIns}")
             if titleIns is None:
                 self.ShowMessage(f"{fusionClipName}用のプラグインがありません。対応していないFusionタイトルか正しくインストールされていないかFusionタイトルが対応していないバージョンの可能性があります。")
                 sys.exit()
@@ -296,10 +292,11 @@ class ExifToFusion():
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetDuration(),  # 後をどこまで伸ばすか
+            "endFrame": baseClip.GetDuration() - 1,  # 後をどこまで伸ばすか
             "trackIndex": trackIndex,
             "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
         }
+        print(f"クリップ情報: {clipInfo}")
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
             raise Exception("Failed Add TimelineItem")
@@ -334,8 +331,6 @@ class ExifToFusion():
                 match = re.match(r"^(.*)\[(\d+)-(\d+)\]\.dng$", filePath)
                 if match and match.group(2).isdigit() and match.group(3).isdigit():
                     filePath = f"{match.group(1)}{match.group(2)}.dng"
-
-            print(f"File path: {filePath}")
             exif = self.RunExiftool(filePath)
             if exif is None:
                 raise Exception("Exittool can't get information")
@@ -384,7 +379,6 @@ class ExifToFusion():
         # JSON出力をパース
         result = result.decode("utf-8").rstrip("\r\n")
         exif_data = json.loads(result)
-        # pprint(exif_data[0])
 
         # exif_dataはリストになっているため、最初の要素を返す
         return exif_data[0]
