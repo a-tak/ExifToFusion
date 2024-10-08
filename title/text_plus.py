@@ -4,8 +4,8 @@ class Text_Plus(TitleSetterAbs):
     def __init__(self):
         self.lines = []
 
-    def GetName(self) -> str:
-        return "Text+"
+    def GetNames(self) -> list[str]:
+        return ["Text+"]
     
     def GetFirstToolNames(self) -> list[str]:
         return ["Template"]
