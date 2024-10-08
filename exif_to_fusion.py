@@ -100,10 +100,14 @@ class ExifToFusion():
 
             # Fusionタイトルパラメーター設定
             # 一回の操作で1種類のタイトルしか作らないのでループの外で作った方が効率的だがクラス初期化毎回したいのでここで生成している
+            print(f"デバッグ: titleMods = {titleMods}")
+            print(f"デバッグ: TitleSetterAbs = {TitleSetterAbs}")
+            print(f"デバッグ: fusionClipName = {fusionClipName}")
             titleIns: TitleSetterAbs = self.FindSubclassInstanceWithName(
                 titleMods, TitleSetterAbs, fusionClipName)
+            print(f"デバッグ: titleIns = {titleIns}")
             if titleIns is None:
-                self.ShowMessage(f"{fusionClipName}用のプラグインがありません")
+                self.ShowMessage(f"{fusionClipName}用のプラグインがありません。対応していないFusionタイトルか正しくインストールされていないかFusionタイトルが対応していないバージョンの可能性があります。")
                 sys.exit()
 
             values = titleIns.GenerateFusionParameter(e)
@@ -236,7 +240,14 @@ class ExifToFusion():
                 "Default": settings.get("DstTrack", "3")
             },
         }
-        result = comp.AskUser("ExifToFusion", dialog)
+        try:
+            result = comp.AskUser("ExifToFusion", dialog)
+        except Exception as e:
+            import traceback
+            print(f"ダイアログの表示中にエラーが発生しました。一度Fusionページを表示してワークスペース > スクリプトから再実行してください。")
+            print("スタックトレース:")
+            print(traceback.format_exc())
+            return None
 
         if result:
             settings_to_save = {
@@ -271,9 +282,8 @@ class ExifToFusion():
         toolList = comp.GetToolList()
         tool = comp.FindTool(titleIns.GetFirstToolName())
         if tool is None:
-            raise Exception(
-                "The tool specified by 'GetFirstToolName' was not found in the Fusion composition."
-            )
+            self.ShowMessage(f"Fusionタイトルが対応していないバージョンの可能性があります。")
+            sys.exit()
         for key, value in parameters.items():
             tool[key] = value
 
@@ -332,7 +342,7 @@ class ExifToFusion():
                                                       CameraExifSetterAbs,
                                                       camera)
         if cameraIns is None:
-            self.ShowMessage(f"{camera}用のプラグインがありません")
+            self.ShowMessage(f"{camera}用のプラグインがありません。正しくインストールされていない可能性があります。")
             sys.exit()
 
         exifinfo = cameraIns.GenerateExifText(exif, mediaPoolItem)
