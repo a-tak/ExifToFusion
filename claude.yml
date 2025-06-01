@@ -1,0 +1,20 @@
+permissions:
+  # リポジトリのオーナーのみが操作可能
+  allow_owners_only: true
+  
+  # 許可された操作を制限
+  allowed_operations:
+    - read
+    - write
+    - execute
+  
+  # アクセス制御
+  access_control:
+    repository_owners_only: true
+    collaborators: false
+    public_access: false
+
+# セキュリティ設定
+security:
+  require_authentication: true
+  enforce_repository_permissions: true
