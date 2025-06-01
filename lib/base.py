@@ -19,6 +19,12 @@ class ExifInfo:
     Format: str = None  #JPEG / RAW
     Size: str = None  #3000x2500
     PhotoStyle: str = None
+    PictureMode: str = None
+    PictureModeStrength: str = None
+    Fade: str = None
+    Vignette: str = None
+    Shadow: str = None
+    Highlight: str = None
     Codec: str = None
     CompressionRatio: str = None #圧縮率。BRAW。
 
