@@ -21,14 +21,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.2.11"
-
+      # ... (steps are identical to your original one) ...
       - name: Run Claude Code Action
         uses: anthropics/claude-code-action@beta
         with:
