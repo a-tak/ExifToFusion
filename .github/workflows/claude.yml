@@ -13,6 +13,8 @@ on:
 jobs:
   claude-response:
     runs-on: ubuntu-latest
+    # リポジトリオーナーのみが操作可能
+    if: github.actor == github.repository_owner
     permissions:
       contents: write
       issues: write
