@@ -6,22 +6,57 @@ on:
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened, assigned]
+    types: [opened, assigned] # 'assigned' イベントの扱いは引き続き注意してください
   pull_request_review:
     types: [submitted]
 
 jobs:
   claude-response:
     runs-on: ubuntu-latest
-    # リポジトリオーナーのみが操作可能
-    if: github.actor == github.repository_owner
+    # 以下の if 条件で実行を制限します
+    if: |
+      (
+        (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+        contains(github.event.comment.body, '@claude') &&
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+      ) ||
+      (
+        github.event_name == 'issues' && github.event.action == 'opened' &&
+        contains(github.event.issue.body, '@claude') &&
+        (
+          github.actor == github.repository_owner
+        )
+      ) ||
+      (
+        github.event_name == 'pull_request_review' && github.event.action == 'submitted' &&
+        contains(github.event.review.body, '@claude') &&
+        (
+          github.actor == github.repository_owner
+        )
+      ) ||
+      (
+        github.event_name == 'issues' && github.event.action == 'assigned' && false
+      )
     permissions:
       contents: write
       issues: write
       pull-requests: write
 
     steps:
-      # ... (steps are identical to your original one) ...
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Git履歴を全てフェッチして 'fatal: not a git repository' エラーを回避
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.11" # 必要に応じて最新バージョンを確認・更新してください
+
       - name: Run Claude Code Action
         uses: anthropics/claude-code-action@beta
         with:
