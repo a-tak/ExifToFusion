@@ -25,6 +25,12 @@ class Text_Plus(TitleSetterAbs):
             self.SetValue("FPS",exifinfo.FPS)
         self.SetValue("Size", exifinfo.Size)
         self.SetValue("Photo Style", exifinfo.PhotoStyle)
+        self.SetValue("Picture Mode", exifinfo.PictureMode)
+        self.SetValue("Picture Mode Strength", exifinfo.PictureModeStrength)
+        self.SetValue("Shadow", exifinfo.Shadow)
+        self.SetValue("Highlight", exifinfo.Highlight)
+        self.SetValue("Fade", exifinfo.Fade)
+        self.SetValue("Vignette", exifinfo.Vignette)
         
         result = "\n".join(self.lines)
         return {

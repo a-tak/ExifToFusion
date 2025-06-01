@@ -18,6 +18,12 @@ class Standard(CameraExifSetterAbs):
         e.FocalPoint = exiftool.get("FocalLength")
         e.WB = exiftool.get("WhiteBalance")
         e.PhotoStyle = exiftool.get("PhotoStyle")
+        e.PictureMode = exiftool.get("PictureMode")
+        e.PictureModeStrength = exiftool.get("PictureModeStrength")
+        e.Fade = exiftool.get("Fade")
+        e.Vignette = exiftool.get("Vignette")
+        e.Shadow = exiftool.get("Shadow")
+        e.Highlight = exiftool.get("Highlight")
         e.Size = exiftool.get("ImageSize")
         e.Format = exiftool.get("FileType")
         if e.Format != "JPEG" and e.Format != "DNG":

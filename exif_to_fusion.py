@@ -357,7 +357,8 @@ class ExifToFusion():
             process = subprocess.Popen([
                 'exiftool', '-json', '-Model', '-LensId', '-Aperture',
                 '-FNumber', '-ISO', '-ShutterSpeed', '-FocalLength',
-                '-WhiteBalance', '-PhotoStyle', '-ImageSize', '-FileType',
+                '-WhiteBalance', '-PhotoStyle', '-PictureMode', '-PictureModeStrength',
+                '-Fade', '-Vignette', '-Shadow', '-Highlight', '-ImageSize', '-FileType',
                 '-PanasonicSemi-ProMetadataXml', filepath
             ],
                                        stdout=subprocess.PIPE,
