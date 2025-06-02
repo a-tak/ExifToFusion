@@ -292,7 +292,7 @@ class ExifToFusion():
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetDuration() - 1,  # 後をどこまで伸ばすか
+            "endFrame": baseClip.GetDuration(),  # 後をどこまで伸ばすか
             "trackIndex": trackIndex,
             "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
         }
