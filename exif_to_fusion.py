@@ -288,11 +288,25 @@ class ExifToFusion():
         for key, value in parameters.items():
             tool[key] = value
 
+    def GetEndFrame(self, baseClip):
+        """フレーム期間を計算する（設定ファイルによる調整対応）
+        
+        ドロップフレーム環境（29.97fps, 59.94fps等）では-1調整が必要な場合がある
+        環境に応じて settings.json で調整値を設定可能
+        """
+        duration = baseClip.GetDuration()
+        settings = self.LoadSettings()
+        
+        # フレーム調整設定を取得（デフォルト: -1）
+        frame_adjustment = settings.get("frameAdjustment", -1)
+        
+        return duration + frame_adjustment
+
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetDuration() - 1,  # 後をどこまで伸ばすか
+            "endFrame": self.GetEndFrame(baseClip),  # 設定可能なフレーム調整
             "trackIndex": trackIndex,
             "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
         }
