@@ -288,11 +288,39 @@ class ExifToFusion():
         for key, value in parameters.items():
             tool[key] = value
 
+    def GetEndFrame(self, baseClip):
+        """フレームレートに基づいてendFrameを動的に計算する
+        
+        ドロップフレーム系（23.976, 29.97, 59.94fps）では-1調整が必要で、
+        ノンドロップフレーム系（24, 25, 30, 60fps等）では調整不要
+        """
+        try:
+            # タイムラインのフレームレートを取得
+            timeline_fps = float(self.timeline.GetSetting("timelineFrameRate"))
+            duration = baseClip.GetDuration()
+            
+            # ドロップフレーム系フレームレートは-1調整
+            dropframe_rates = [23.976, 29.97, 59.94]
+            
+            # 小数点以下の誤差を考慮して判定
+            is_dropframe = any(abs(timeline_fps - rate) < 0.01 for rate in dropframe_rates)
+            
+            if is_dropframe:
+                print(f"ドロップフレーム検出 (FPS: {timeline_fps}): endFrame = {duration - 1}")
+                return duration - 1
+            else:
+                print(f"ノンドロップフレーム検出 (FPS: {timeline_fps}): endFrame = {duration}")
+                return duration
+        except Exception as e:
+            # フレームレート取得に失敗した場合は従来の動作（-1調整）を維持
+            print(f"フレームレート取得エラー、デフォルト動作を使用: {e}")
+            return baseClip.GetDuration() - 1
+
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetDuration() - 1,  # 後をどこまで伸ばすか
+            "endFrame": self.GetEndFrame(baseClip),  # フレームレートに基づいて動的に計算
             "trackIndex": trackIndex,
             "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
         }
