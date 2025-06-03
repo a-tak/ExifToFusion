@@ -12,6 +12,7 @@ import importlib
 import pkgutil
 import subprocess
 import json
+import platform
 
 
 class ExifToFusion():
@@ -108,6 +109,10 @@ class ExifToFusion():
 
             values = titleIns.GenerateFusionParameter(e)
             self.SetFusionParameter(fusionComp, titleIns, values)
+        
+        # タスク完了後にベル音を鳴らす
+        if ret.get("PlayBell", False):
+            self.PlayBell()
 
     def LoadModulesFromFolder(self, folder, pkgName) -> dict:
         """指定したフォルダのモジュールを取得する
@@ -235,6 +240,12 @@ class ExifToFusion():
                 "Lines": 1,
                 "Default": settings.get("DstTrack", "3")
             },
+            4: {
+                1: "playBell",
+                "Name": "完了時にベル音を鳴らす",
+                2: "Checkbox",
+                "Default": settings.get("PlayBell", 1)
+            },
         }
         try:
             result = comp.AskUser("ExifToFusion", dialog)
@@ -250,7 +261,8 @@ class ExifToFusion():
                 "FusionTitle": titleOptions[result["fusionTitle"]],
                 "FusionTitleIndex": result["fusionTitle"],
                 "SrcTrack": result["srcTrack"],
-                "DstTrack": result["dstTrack"]
+                "DstTrack": result["dstTrack"],
+                "PlayBell": result["playBell"]
             }
             self.SaveSettings(settings_to_save)
             return settings_to_save
@@ -383,6 +395,25 @@ class ExifToFusion():
 
         # exif_dataはリストになっているため、最初の要素を返す
         return exif_data[0]
+
+    def PlayBell(self) -> None:
+        """タスク完了時にベル音を鳴らす
+        """
+        try:
+            system = platform.system()
+            if system == "Windows":
+                # Windowsでベル音を鳴らす
+                import winsound
+                winsound.MessageBeep(winsound.MB_OK)
+            elif system == "Darwin":  # macOS
+                # macOSでベル音を鳴らす
+                os.system("afplay /System/Library/Sounds/Glass.aiff")
+            else:  # Linux等
+                # Linuxでベル音を鳴らす（端末のベル音）
+                print("\a", end="", flush=True)
+        except Exception as e:
+            # ベル音の再生に失敗しても処理は続行する
+            print(f"ベル音の再生に失敗しました: {e}")
 
 if __name__ == "__main__":
     obj = ExifToFusion().main()
