@@ -36,6 +36,9 @@ class ExifToFusion():
                                                      self.cameraPkg)
 
     def main(self):
+        # Fusionページを自動的に開く
+        self.OpenFusionPage()
+        
         ret: dict = self.ShowMainDialog()
         if ret is None:
             sys.exit()
@@ -108,6 +111,17 @@ class ExifToFusion():
 
             values = titleIns.GenerateFusionParameter(e)
             self.SetFusionParameter(fusionComp, titleIns, values)
+
+    def OpenFusionPage(self) -> None:
+        """Fusionページを開く
+        """
+        try:
+            # DaVinci Resolve 19でFusionページを開く
+            self.resolve.OpenPage("fusion")
+            print("Fusionページを開きました")
+        except Exception as e:
+            print(f"Fusionページの切り替えでエラーが発生しました: {e}")
+            # エラーが発生してもスクリプトは継続する
 
     def LoadModulesFromFolder(self, folder, pkgName) -> dict:
         """指定したフォルダのモジュールを取得する
