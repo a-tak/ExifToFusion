@@ -303,37 +303,20 @@ class ExifToFusion():
             tool[key] = value
 
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
-        # デバッグ: ベースクリップの詳細情報を出力
+        # ベースクリップの情報を取得
         base_duration = baseClip.GetDuration()
         base_start = baseClip.GetStart()
-        base_end = baseClip.GetEnd()
-        calculated_duration = base_end - base_start
         
-        print(f"=== デバッグ情報: ベースクリップ ===")
-        print(f"baseClip.GetDuration(): {base_duration}")
-        print(f"baseClip.GetStart(): {base_start}")
-        print(f"baseClip.GetEnd(): {base_end}")  
-        print(f"GetEnd() - GetStart(): {calculated_duration}")
-        
-        # デバッグ: タイムライン情報を出力
-        try:
-            timeline_fps = self.timeline.GetSetting("timelineFrameRate")
-            print(f"タイムラインFPS: {timeline_fps}")
-        except Exception as e:
-            print(f"タイムラインFPS取得エラー: {e}")
-        
-        # シンプルにGetDuration()を使用（補正なし）
-        print(f"endFrameにGetDuration()を使用: {base_duration}")
-        
-        # clipInfo方式でstartFrame/endFrameを明示的に指定
+        # Fusionタイトルをタイムラインに追加
+        # 注意: 24FPSタイムラインでは若干のフレーム誤差が生じる場合があります（DaVinci Resolve API制限）
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": base_duration,  # GetDuration()をそのまま使用
+            "endFrame": base_duration,  # ベースクリップと同じ長さを指定
             "trackIndex": trackIndex,
-            "recordFrame": base_start  # タイムラインに配置する場所
+            "recordFrame": base_start  # ベースクリップと同じ位置に配置
         }
-        print(f"clipInfo（補正なし）: {clipInfo}")
+        print(f"Fusionタイトル追加: 長さ{base_duration}フレーム, 位置{base_start}")
         
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
@@ -341,24 +324,7 @@ class ExifToFusion():
         if results[0].GetFusionCompByIndex(1) is None:
             raise Exception("Failed Add Fusion Comp")
         
-        created_item = results[0]
-        
-        # デバッグ: 補正後のFusionタイトルの情報を出力
-        created_duration = created_item.GetDuration()
-        created_start = created_item.GetStart()
-        created_end = created_item.GetEnd()
-        created_calculated = created_end - created_start
-        
-        print(f"=== デバッグ情報: 作成されたFusionタイトル ===")
-        print(f"created.GetDuration(): {created_duration}")
-        print(f"created.GetStart(): {created_start}")
-        print(f"created.GetEnd(): {created_end}")
-        print(f"created GetEnd() - GetStart(): {created_calculated}")
-        print(f"ベースGetDuration()との差: {created_duration - base_duration}")
-        print(f"ベース計算長さとの差: {created_calculated - calculated_duration}")
-        print("===============================")
-        
-        return created_item
+        return results[0]
 
     def GetFusionComposite(self, clipName):
         """指定されたクリップ名のFusionコンポジットをメディアプールから取得する
