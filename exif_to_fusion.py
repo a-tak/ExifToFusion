@@ -303,20 +303,56 @@ class ExifToFusion():
             tool[key] = value
 
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
+        # デバッグ: ベースクリップの詳細情報を出力
+        base_duration = baseClip.GetDuration()
+        base_start = baseClip.GetStart()
+        base_end = baseClip.GetEnd()
+        calculated_duration = base_end - base_start
+        
+        print(f"=== デバッグ情報: ベースクリップ ===")
+        print(f"baseClip.GetDuration(): {base_duration}")
+        print(f"baseClip.GetStart(): {base_start}")
+        print(f"baseClip.GetEnd(): {base_end}")  
+        print(f"GetEnd() - GetStart(): {calculated_duration}")
+        
+        # デバッグ: タイムライン情報を出力
+        try:
+            timeline_fps = self.timeline.GetSetting("timelineFrameRate")
+            print(f"タイムラインFPS: {timeline_fps}")
+        except Exception as e:
+            print(f"タイムラインFPS取得エラー: {e}")
+        
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetEnd() - baseClip.GetStart(),  # タイムライン上の実際の長さ
+            "endFrame": calculated_duration,  # タイムライン上の実際の長さ
             "trackIndex": trackIndex,
-            "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
+            "recordFrame": base_start  # タイムラインに配置する場所
         }
-        print(f"クリップ情報: {clipInfo}")
+        print(f"clipInfo: {clipInfo}")
+        
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
             raise Exception("Failed Add TimelineItem")
         if results[0].GetFusionCompByIndex(1) is None:
             raise Exception("Failed Add Fusion Comp")
-        return results[0]
+        
+        # デバッグ: 作成されたFusionタイトルの情報を出力
+        created_item = results[0]
+        created_duration = created_item.GetDuration()
+        created_start = created_item.GetStart()
+        created_end = created_item.GetEnd()
+        created_calculated = created_end - created_start
+        
+        print(f"=== デバッグ情報: 作成されたFusionタイトル ===")
+        print(f"created.GetDuration(): {created_duration}")
+        print(f"created.GetStart(): {created_start}")
+        print(f"created.GetEnd(): {created_end}")
+        print(f"created GetEnd() - GetStart(): {created_calculated}")
+        print(f"ベースクリップとの差: {created_calculated - calculated_duration}")
+        print("===============================")
+        
+        return created_item
 
     def GetFusionComposite(self, clipName):
         """指定されたクリップ名のFusionコンポジットをメディアプールから取得する
