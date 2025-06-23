@@ -321,14 +321,26 @@ class ExifToFusion():
             print(f"タイムラインFPS: {timeline_fps}")
         except Exception as e:
             print(f"タイムラインFPS取得エラー: {e}")
+            timeline_fps = None
         
-        # clipInfo方式でstartFrame/endFrameを省略（デフォルト長さで追加）
+        # フレームレート別の補正を適用
+        if timeline_fps == 24.0:
+            # 24FPSでは4フレームの誤差が発生するため補正
+            corrected_duration = calculated_duration - 4
+            print(f"24FPS補正: {calculated_duration} → {corrected_duration}")
+        else:
+            corrected_duration = calculated_duration
+            print(f"補正なし: {corrected_duration}")
+        
+        # clipInfo方式でstartFrame/endFrameを明示的に指定
         clipInfo = {
             "mediaPoolItem": fusionComp,
+            "startFrame": 0,
+            "endFrame": corrected_duration,
             "trackIndex": trackIndex,
-            "recordFrame": base_start  # タイムラインに配置する場所のみ指定
+            "recordFrame": base_start  # タイムラインに配置する場所
         }
-        print(f"clipInfo（フレーム範囲省略）: {clipInfo}")
+        print(f"clipInfo（補正適用）: {clipInfo}")
         
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
@@ -338,13 +350,13 @@ class ExifToFusion():
         
         created_item = results[0]
         
-        # デバッグ: デフォルト長さで作成されたFusionタイトルの情報を出力
+        # デバッグ: 補正後のFusionタイトルの情報を出力
         created_duration = created_item.GetDuration()
         created_start = created_item.GetStart()
         created_end = created_item.GetEnd()
         created_calculated = created_end - created_start
         
-        print(f"=== デバッグ情報: デフォルト長さのFusionタイトル ===")
+        print(f"=== デバッグ情報: 補正後のFusionタイトル ===")
         print(f"created.GetDuration(): {created_duration}")
         print(f"created.GetStart(): {created_start}")
         print(f"created.GetEnd(): {created_end}")
