@@ -303,19 +303,27 @@ class ExifToFusion():
             tool[key] = value
 
     def AddToTimeline(self, baseClip, fusionComp, trackIndex):
+        # ベースクリップの情報を取得
+        base_duration = baseClip.GetDuration()
+        base_start = baseClip.GetStart()
+        
+        # Fusionタイトルをタイムラインに追加
+        # 注意: 24FPSタイムラインでは若干のフレーム誤差が生じる場合があります（DaVinci Resolve API制限）
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": baseClip.GetDuration() - 1,  # 後をどこまで伸ばすか
+            "endFrame": base_duration,  # ベースクリップと同じ長さを指定
             "trackIndex": trackIndex,
-            "recordFrame": baseClip.GetStart()  # タイムラインに配置する場所
+            "recordFrame": base_start  # ベースクリップと同じ位置に配置
         }
-        print(f"クリップ情報: {clipInfo}")
+        print(f"Fusionタイトル追加: 長さ{base_duration}フレーム, 位置{base_start}")
+        
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
             raise Exception("Failed Add TimelineItem")
         if results[0].GetFusionCompByIndex(1) is None:
             raise Exception("Failed Add Fusion Comp")
+        
         return results[0]
 
     def GetFusionComposite(self, clipName):
