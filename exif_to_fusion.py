@@ -322,9 +322,15 @@ class ExifToFusion():
         except Exception as e:
             print(f"タイムラインFPS取得エラー: {e}")
         
-        # シンプルな方法でFusionコンポジションを追加（フレーム指定なし）
-        print("シンプルな方法でFusionタイトルを追加...")
-        results = self.mediaPool.AppendToTimeline([fusionComp])
+        # clipInfo方式でstartFrame/endFrameを省略（デフォルト長さで追加）
+        clipInfo = {
+            "mediaPoolItem": fusionComp,
+            "trackIndex": trackIndex,
+            "recordFrame": base_start  # タイムラインに配置する場所のみ指定
+        }
+        print(f"clipInfo（フレーム範囲省略）: {clipInfo}")
+        
+        results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
             raise Exception("Failed Add TimelineItem")
         if results[0].GetFusionCompByIndex(1) is None:
@@ -332,20 +338,13 @@ class ExifToFusion():
         
         created_item = results[0]
         
-        # 追加されたアイテムをベースクリップと同じ位置・長さに調整
-        print(f"位置調整: {base_start}に移動, 長さを{calculated_duration}に設定")
-        
-        # 位置を調整
-        created_item.SetProperty("Start", base_start)
-        created_item.SetProperty("End", base_end)
-        
-        # デバッグ: 調整後のFusionタイトルの情報を出力
+        # デバッグ: デフォルト長さで作成されたFusionタイトルの情報を出力
         created_duration = created_item.GetDuration()
         created_start = created_item.GetStart()
         created_end = created_item.GetEnd()
         created_calculated = created_end - created_start
         
-        print(f"=== デバッグ情報: 調整後のFusionタイトル ===")
+        print(f"=== デバッグ情報: デフォルト長さのFusionタイトル ===")
         print(f"created.GetDuration(): {created_duration}")
         print(f"created.GetStart(): {created_start}")
         print(f"created.GetEnd(): {created_end}")
