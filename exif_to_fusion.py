@@ -321,26 +321,19 @@ class ExifToFusion():
             print(f"タイムラインFPS: {timeline_fps}")
         except Exception as e:
             print(f"タイムラインFPS取得エラー: {e}")
-            timeline_fps = None
         
-        # フレームレート別の補正を適用
-        if timeline_fps == 24.0:
-            # 24FPSでは4フレームの誤差が発生するため補正
-            corrected_duration = calculated_duration - 4
-            print(f"24FPS補正: {calculated_duration} → {corrected_duration}")
-        else:
-            corrected_duration = calculated_duration
-            print(f"補正なし: {corrected_duration}")
+        # シンプルにGetDuration()を使用（補正なし）
+        print(f"endFrameにGetDuration()を使用: {base_duration}")
         
         # clipInfo方式でstartFrame/endFrameを明示的に指定
         clipInfo = {
             "mediaPoolItem": fusionComp,
             "startFrame": 0,
-            "endFrame": corrected_duration,
+            "endFrame": base_duration,  # GetDuration()をそのまま使用
             "trackIndex": trackIndex,
             "recordFrame": base_start  # タイムラインに配置する場所
         }
-        print(f"clipInfo（補正適用）: {clipInfo}")
+        print(f"clipInfo（補正なし）: {clipInfo}")
         
         results = self.mediaPool.AppendToTimeline([clipInfo])
         if results is None or len(results) != 1:
@@ -356,12 +349,13 @@ class ExifToFusion():
         created_end = created_item.GetEnd()
         created_calculated = created_end - created_start
         
-        print(f"=== デバッグ情報: 補正後のFusionタイトル ===")
+        print(f"=== デバッグ情報: 作成されたFusionタイトル ===")
         print(f"created.GetDuration(): {created_duration}")
         print(f"created.GetStart(): {created_start}")
         print(f"created.GetEnd(): {created_end}")
         print(f"created GetEnd() - GetStart(): {created_calculated}")
-        print(f"ベースクリップとの差: {created_calculated - calculated_duration}")
+        print(f"ベースGetDuration()との差: {created_duration - base_duration}")
+        print(f"ベース計算長さとの差: {created_calculated - calculated_duration}")
         print("===============================")
         
         return created_item
